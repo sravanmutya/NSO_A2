@@ -1,4 +1,4 @@
-cd ./../../keys2
+cd ./../../NSO_A2
 . openstack.sh
 net1='net2'
 router1='router2'
