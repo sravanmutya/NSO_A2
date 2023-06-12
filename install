@@ -1,6 +1,6 @@
-cd ./../../NSO_A2
-. openstack.sh
-net1='net2'
+openrc = 
+tag ='net2'
+ssh_key = 
 router1='router2'
 subnet1='subnet2'
 openstack network create $net1 -f json
