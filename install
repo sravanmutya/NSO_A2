@@ -2,7 +2,7 @@ openrc = /home/sravan/'srmu21--kna1--Default Project 44275--rc'
 tag ='srmu21'
 ssh_key = ~/.ssh/id_rsa
 
-# Creation of the required items
+# Creation of the network, router, subnet
 openstack network create srmu21_network -f json --tag srmu
 openstack router create srmu21_router --tag srmu
 openstack subnet create --subnet-range 192.168.0.0/24 --allocation-pool start=192.168.0.2,end=192.168.0.20 --network srmu21_network srmu21_subnet
@@ -12,6 +12,7 @@ openstack router set --external-gateway ext-net srmu21_router
 openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip
 echo "Floating IP: $(cat floating_ip)"
 
+# Creation of server
 openstack server create \
 --flavor b.1c1gb (2ed4fefe-132e-4eaf-9351-f6b950a3d015) \
 --image e6cbd963-8c28-4551-a837-e3b85da5d7a1 \
