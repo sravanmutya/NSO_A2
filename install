@@ -11,6 +11,16 @@ openstack router add subnet srmu21_router srmu21_network
 openstack router set --external-gateway ext-net srmu21_router
 openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip
 echo "Floating IP: $(cat floating_ip)"
+
+openstack server create \
+--flavor b.1c1gb (2ed4fefe-132e-4eaf-9351-f6b950a3d015) \
+--image e6cbd963-8c28-4551-a837-e3b85da5d7a1 \
+--security-group TATTA \
+--nic net-id=6d6f1cf7-c4f9-4675-a3a6-6df9baa7e42b,v4-fixed-ip='192.168.0.5' \
+--key-name ansible
+sleep 15s
+openstack server add floating ip $name $floating_ip
+
 # openstack floating ip delete $(cat floating_ip)
 # openstack router unset --external-gateway srmu21_router
 # openstack router remove subnet srmu21_router srmu21_subnet
