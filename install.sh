@@ -1,3 +1,5 @@
+#!/bin/bash
+
 openrc = /home/sravan/'srmu21--kna1--Default Project 44275--rc'
 tag ='srmu21'
 ssh_key = ~/.ssh/id_rsa
