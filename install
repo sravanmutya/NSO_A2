@@ -2,6 +2,11 @@ openrc = /home/sravan/'srmu21--kna1--Default Project 44275--rc'
 tag ='srmu21'
 ssh_key = ~/.ssh/id_rsa
 
+# Checking if the required arguments are passed by the user - the openrc, the tag and the ssh_key
+: ${1:?" Please specify openrc. "}
+: ${2:?" Please specify the tag. "}
+: ${3:?" Please specify the ssh_key. "}
+
 # Creation of the network, router, subnet
 openstack network create srmu21_network -f json --tag srmu
 openstack router create srmu21_router --tag srmu
