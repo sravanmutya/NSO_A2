@@ -9,6 +9,12 @@ ssh_key = ~/.ssh/id_rsa
 : ${2:?" Please specify the tag. "}
 : ${3:?" Please specify the ssh_key. "}
 
+# Taking input arguments and storing them into variables
+# Following naming convention of using p at the end of the variable meaning for project.
+openrc_p=${1}
+tag_p=${2}
+ssh_key_p=${3}
+
 # Creation of the network, router, subnet
 openstack network create srmu21_network -f json --tag srmu
 openstack router create srmu21_router --tag srmu
