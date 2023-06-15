@@ -123,4 +123,35 @@ fi
 # fi
 
 
+## Create port for Virtual IP
+vip=$(openstack port create --network "$natverk_namn" --fixed-ip subnet="$sr_subnet" --no-security-group "$vip_port" )
+
+unassigned_ips=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address")
+
+
+# Node creation
+existing_servers=$(openstack server list --status ACTIVE --column Name -f value)
+
+if [[ "$existing_servers" == *"$sr_bastion_server"* ]]; then
+        echo "$(date) $sr_bastion_server already exists"
+else
+   if [[ -n "$unassigned_ips" ]]; then
+        fip1=$(echo "$unassigned_ips" | awk '{print $1}')
+        if [[ -n "$fip1" ]]; then
+            echo "$(date) Assigned floating IP for the Bastion"
+        else
+            echo "$(date) Creating floating IP for the Bastion"
+            created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
+            fip1="$(cat floating_ip1)"
+        fi
+    else
+            echo "$(date) Creating floating IP for the Bastion"
+            created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
+            fip1="$(cat floating_ip1)"
+    fi
+    bastion=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" ${sr_bastion_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group}) 
+    add_bastion_fip=$(openstack server add floating ip ${sr_bastion_server} $fip1) 
+    echo "$(date) created $sr_bastion_server server"
+fi
+
 
