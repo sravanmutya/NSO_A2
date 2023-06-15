@@ -8,9 +8,9 @@
 
 
 cd_time=$(date)
-openrc_sr=${1}     # Here, the rc file being given as first input argument is being stored in the variable openrc_sr
-tag_sr=${2}        # Here, the tag being given as second input argument is being stored in the variable tag_sr
-ssh_key_sr=${3}    # Here, the ssh_key being given as third input argument is being stored in the variable ssh_key_sr
+openrc_sr=${1}     # Fetching the openrc access file
+tag_sr=${2}        # Fetching the tag for easy identification of items
+ssh_key_sr=${3}    # Fetching the ssh_key for secure remote access
 no_of_servers=$(grep -E '[0-9]' servers.conf) # Fetching the number of nodes from servers.conf
 
 
@@ -18,6 +18,20 @@ no_of_servers=$(grep -E '[0-9]' servers.conf) # Fetching the number of nodes fro
 echo "$cd_time Starting deployment of $tag_sr using $openrc_sr for credentials."
 source $openrc_sr
 
+
+# Define variables
+natverk_namn="${2}_network"
+sr_subnet="${2}_subnet"
+sr_keypair="${2}_key"
+sr_router="${2}_router"
+sr_security_group="${2}_security_group"
+sr_haproxy_server="${2}_proxy"
+sr_bastion_server="${2}_bastion"
+sr_server="${2}_dev"
+vip_port="${2}_vip" #virtual ip port
+sshconfig="config"
+knownhosts="known_hosts"
+hostsfile="hosts"
 
 # Creation of the network, router, subnet
 openstack network create srmu21_network -f json --tag srmu
