@@ -161,8 +161,7 @@ else
     if [[ -n "$unassigned_ips" ]]; then
         fip2=$(echo "$unassigned_ips" | awk '{print $2}')
         if [[ -n "$fip2" ]]; then
-            echo "
-            $(date) Created floating IP for the HAproxy server (Floating ip for Virtual IP)"
+            echo "$(date) Created floating IP for the HAproxy server (Floating ip for Virtual IP)"
         else
             echo " $(date) Creating floating IP for the HAproxy (Floating ip for Virtual IP)"
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
