@@ -155,3 +155,26 @@ else
 fi
 
 
+if [[ "$existing_servers" == *"$sr_haproxy_server"* ]]; then
+        echo "$(date) HAproxy already exists"
+else 
+    if [[ -n "$unassigned_ips" ]]; then
+        fip2=$(echo "$unassigned_ips" | awk '{print $2}')
+        if [[ -n "$fip2" ]]; then
+            echo "
+            $(date) Created floating IP for the HAproxy server (Floating ip for Virtual IP)"
+        else
+            echo " $(date) Creating floating IP for the HAproxy (Floating ip for Virtual IP)"
+            created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
+            fip2="$(cat floating_ip2)"
+        fi
+    else
+            echo "$(date) Creating floating ip for HAproxy (Floating ip for Virtual IP)"
+            created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
+            fip2="$(cat floating_ip2)"
+    fi
+    haproxy=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" $sr_haproxy_server --key-name $sr_keypair --flavor "1C-2GB-50GB" --network $natverk_namn --security-group $sr_security_group)
+    # add_haproxy_fip=$(openstack server add floating ip $sr_haproxy_server $fip2)
+
+    echo "$(date) HAproxy server created successfully"
+fi
