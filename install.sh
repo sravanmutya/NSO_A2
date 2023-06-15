@@ -189,3 +189,40 @@ update_port=$(openstack port set --allowed-address ip-address="$fip2" "$vip_port
 
 devservers_count=$(grep -ocP $sr_server <<< $existing_servers)
 
+
+if(($no_of_servers > $devservers_count)); then
+    devservers_to_add=$(($no_of_servers - $devservers_count))
+    sequence=$(( $devservers_count+1 ))
+    devserver_name=${dev_server}${sequence}
+
+    while [ $devservers_to_add -gt 0 ]  
+    do    
+        server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network $natverk_namn --security-group $sr_security_group)
+        echo "$(date) Created $devserver_name server"
+        ((devservers_to_add--))
+        
+        active=false
+        while [ "$active" = false ]; do
+            server_status=$(openstack server show "$devserver_name" -f value -c status)
+            if [ "$server_status" == "ACTIVE" ]; then
+                active=true
+            fi
+        done
+
+        sequence=$(( $sequence+1 ))
+        devserver_name=${sr_server}${sequence}
+
+    done
+
+elif (( $no_of_servers < $devservers_count )); then
+    devservers_to_remove=$(($devservers_count - $required_dev_servers))
+    sequence1=0
+    while [[ $sequence1 -lt $devservers_to_remove ]]; do
+        server_to_delete=$(openstack server list --status ACTIVE -f value -c Name | grep -m1 -oP "${tag_sr}"'_dev([1-9]+)')   
+        deleted_server=$(openstack server delete "$server_to_delete" --wait)
+        echo " $(date) Deleted $server_to_delete server"
+        ((sequence1++))
+    done
+else
+    echo "Required number of dev servers($no_of_servers) already exist."
+fi
