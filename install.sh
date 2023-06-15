@@ -177,3 +177,15 @@ else
 
     echo "$(date) HAproxy server created successfully"
 fi
+
+# Attaching the floating IP to the VIP port
+add_vip_fip=$(openstack floating ip set --port "$vip_port" $fip2)
+
+vip_addr=$(openstack port show "$vip_port" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
+echo "$vip_addr" >> vipaddr
+
+# Update vip port with fp pair
+update_port=$(openstack port set --allowed-address ip-address="$fip2" "$vip_port")
+
+devservers_count=$(grep -ocP $sr_server <<< $existing_servers)
+
