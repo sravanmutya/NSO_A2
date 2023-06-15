@@ -1,21 +1,18 @@
 #!/bin/bash
 
+# Checking if the required arguments are present - the openrc, the tag and the ssh_key
+# The program will not run if these arguments are not present.
+: ${1:?" Please specify the openrc, tag, and ssh_key"}
+: ${2:?" Please specify the openrc, tag, and ssh_key"}
+: ${3:?" Please specify the openrc, tag, and ssh_key"}
+
+
 current_date_time=$(date)
-openrc=$1     # Here, the rc file being given as first input argument is being stored in the variable openrc
-tag=$2        # Here, the tag being given as second input argument is being stored in the variable tag
-ssh_key=$3    # Here, the ssh_key being given as third input argument is being stored in the variable ssh_key
-required_dev_servers=3
+openrc_sr=${1}     # Here, the rc file being given as first input argument is being stored in the variable openrc_sr
+tag_sr=${2}        # Here, the tag being given as second input argument is being stored in the variable tag_sr
+ssh_key_sr=${3}    # Here, the ssh_key being given as third input argument is being stored in the variable ssh_key_sr
+no_of_servers=$(grep -E '[0-9]' servers.conf) # Fetching the number of nodes from servers.conf
 
-# Checking if the required arguments are passed by the user - the openrc, the tag and the ssh_key
-: ${1:?" Please specify openrc. "}
-: ${2:?" Please specify the tag. "}
-: ${3:?" Please specify the ssh_key. "}
-
-# Taking input arguments and storing them into variables
-# Following naming convention of using p at the end of the variable meaning for project.
-openrc_p=${1}
-tag_p=${2}
-ssh_key_p=${3}
 
 # Creation of the network, router, subnet
 openstack network create srmu21_network -f json --tag srmu
