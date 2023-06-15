@@ -7,11 +7,16 @@
 : ${3:?" Please specify the openrc, tag, and ssh_key"}
 
 
-current_date_time=$(date)
+cd_time=$(date)
 openrc_sr=${1}     # Here, the rc file being given as first input argument is being stored in the variable openrc_sr
 tag_sr=${2}        # Here, the tag being given as second input argument is being stored in the variable tag_sr
 ssh_key_sr=${3}    # Here, the ssh_key being given as third input argument is being stored in the variable ssh_key_sr
 no_of_servers=$(grep -E '[0-9]' servers.conf) # Fetching the number of nodes from servers.conf
+
+
+# Begin deployment by sourcing the given openrc file
+echo "$cd_time Starting deployment of $tag_sr using $openrc_sr for credentials."
+source $openrc_sr
 
 
 # Creation of the network, router, subnet
