@@ -260,3 +260,42 @@ echo "$sr_bastion_server" >> $hostsfile
 echo " " >> $hostsfile
 echo "[HAproxy]" >> $hostsfile
 echo "$sr_haproxy_server" >> $hostsfile
+
+echo " " >> $hostsfile
+echo "[webservers]" >> $hostsfile
+
+# Get the list of active servers
+active_servers=$(openstack server list --status ACTIVE -f value -c Name | grep -oP "${tag_sr}"'_dev([1-9]+)')
+echo "$active_Servers"
+# Loop through each active server and extract its IP address
+for server in $active_servers; do
+        ip_address=$(openstack server list --name $server -c Networks -f value | grep -Po  '\d+\.\d+\.\d+\.\d+')
+        echo " " >> $sshconfig
+        echo "Host $server" >> $sshconfig
+        echo "   User ubuntu" >> $sshconfig
+        echo "   HostName $ip_address" >> $sshconfig
+        echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+        echo "   UserKnownHostsFile=~/dev/null" >> $sshconfig
+        echo "   StrictHostKeyChecking no" >> $sshconfig
+        echo "   PasswordAuthentication no" >> $sshconfig
+        echo "   ProxyJump $sr_bastion_server" >> $sshconfig 
+
+        echo "$server" >> $hostsfile
+done
+
+echo " " >> $hostsfile
+echo "[primary_proxy]" >> $hostsfile
+echo "$sr_haproxy_server" >> $hostsfile
+
+echo " " >> $hostsfile
+echo "[all:vars]" >> $hostsfile
+echo "ansible_user=ubuntu" >> $hostsfile
+echo "ansible_ssh_private_key_file=~/.ssh/id_rsa" >> $hostsfile
+echo "ansible_ssh_common_args=' -F $sshconfig '" >> $hostsfile
+
+echo "$(date) Running ansible playbook"
+ansible-playbook -i "$hostsfile" site.yaml
+
+echo "Bastion IP address: $fip1"
+
+echo "HAproxy IP address: $fip2"
