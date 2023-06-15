@@ -1,8 +1,10 @@
 #!/bin/bash
 
-openrc = /home/sravan/'srmu21--kna1--Default Project 44275--rc'
-tag ='srmu21'
-ssh_key = ~/.ssh/id_rsa
+current_date_time=$(date)
+openrc=$1     # Here, the rc file being given as first input argument is being stored in the variable openrc
+tag=$2        # Here, the tag being given as second input argument is being stored in the variable tag
+ssh_key=$3    # Here, the ssh_key being given as third input argument is being stored in the variable ssh_key
+required_dev_servers=3
 
 # Checking if the required arguments are passed by the user - the openrc, the tag and the ssh_key
 : ${1:?" Please specify openrc. "}
