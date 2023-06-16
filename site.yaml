@@ -31,6 +31,20 @@
       shell: python3 /home/ubuntu/app.py
       async: 3600
       poll: 0
+      
+    - name: install snmpd
+      apt:
+              name: snmpd
+              state: latest
+    
+    - name: cpy snmpd conf file
+      template:
+              src: snmpd.conf.j2
+              dest: "/etc/snmp/snmpd.conf"
+    - name: run snmpd
+      service:
+              name: snmpd
+              state: restarted    
 
 - hosts: haproxy
   gather_facts: yes
