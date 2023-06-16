@@ -1,12 +1,34 @@
 #!/bin/bash
 
-# Checking if the required arguments are passed by the user - the openrc, the tag and the ssh_key
-: ${1:?" Please specify openrc. "}
-: ${2:?" Please specify the tag. "}
-: ${3:?" Please specify the ssh_key. "}
+# Checking if the required arguments are present - the openrc, the tag and the ssh_key
+# The program will not run if these arguments are not present.
+: ${1:?" Please specify the openrc, tag, and ssh_key"}
+: ${2:?" Please specify the openrc, tag, and ssh_key"}
+: ${3:?" Please specify the openrc, tag, and ssh_key"}
 
-# Taking input arguments and storing them into variables
-# Following naming convention of using p at the end of the variable meaning for project.
-openrc_p=${1}
-tag_p=${2}
-ssh_key_p=${3}
+
+cd_time=$(date)
+openrc_sr=${1}     # Fetching the openrc access file
+tag_sr=${2}        # Fetching the tag for easy identification of items
+ssh_key_sr=${3}    # Fetching the ssh_key for secure remote access
+no_of_servers=$(grep -E '[0-9]' servers.conf) # Fetching the number of nodes from servers.conf
+
+
+# Define variables
+natverk_namn="${2}_network"
+sr_subnet="${2}_subnet"
+sr_keypair="${2}_key"
+sr_router="${2}_router"
+sr_security_group="${2}_security_group"
+sr_haproxy_server="${2}_proxy"
+sr_bastion_server="${2}_bastion"
+sr_server="${2}_dev"
+vip_port="${2}_vip" #virtual ip port
+sshconfig="config"
+knownhosts="known_hosts"
+hostsfile="hosts"
+
+
+run_status=0 ##ansible run status
+echo "Running Operation mode for tag: $tag_name using $rc_file for credentials"
+source $openrc_sr
