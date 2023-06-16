@@ -48,3 +48,15 @@ else
   echo "$(date) No nodes to delete"
 fi
 
+
+# Deleting the keypair corresponding to the tag
+keypairs=$(openstack keypair list -f value -c Name | grep "$tag_sr*")
+
+if [ -n "$keypairs" ]; then
+  for key in $keypairs; do  
+    openstack keypair delete $key
+  done
+  echo "$(date) Removed $sr_keypair key"
+else
+  echo "$(date) $sr_keypair key does not exist."
+fi
