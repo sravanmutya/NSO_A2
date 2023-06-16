@@ -32,3 +32,17 @@ hostsfile="hosts"
 run_status=0 ##ansible run status
 echo "Running Operation mode for tag: $tag_name using $rc_file for credentials"
 source $openrc_sr
+
+generate_config(){
+    bastionfip=$(openstack server list --name $sr_bastion_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+    # haproxyfip=$(openstack server list --name $sr_haproxy_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==1')
+    haproxyfip=$(openstack server show $sr_haproxy_server -c addresses | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==1')
+    
+
+    echo "$(date) Generating config file"
+    echo "Host $sr_bastion_server" >> $sshconfig
+    echo "   User ubuntu" >> $sshconfig
+    echo "   HostName $bastionfip" >> $sshconfig
+    echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+    echo "   StrictHostKeyChecking no" >> $sshconfig
+    echo "   PasswordAuthentication no" >> $sshconfig
