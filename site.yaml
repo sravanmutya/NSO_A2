@@ -1,28 +1,54 @@
 ---
-
-- hosts: all
+- hosts: webservers
   gather_facts: yes
   become: yes
-
-    
   tasks:
-    - name: apt update
+    - name: Update the repositories cache
       apt:
-        update_cache: true
+        update_cache: yes
+        cache_valid_time: 3600
+      
+    - name: Install Python3-pip
+      apt:
+         name: python3-pip
+         state: present
+         
+    - name: Install flask using 'pip3' executable
+      ansible.builtin.pip:
+        name: flask
+        executable: pip3
+        state: latest
 
-- name: Configuring HAproxy as a loadbalancer
-  hosts: HAproxy
+    - name: Upload the application to the servers
+      copy:
+        src: ./app.py
+        dest: /home/ubuntu
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+
+    - name: Run the application
+      shell: python3 /home/ubuntu/app.py
+      async: 3600
+      poll: 0
+
+- hosts: haproxy
+  gather_facts: yes
   become: yes
-  
   tasks:
-
-    
-    - name : sudo wait
-      become: yes
-      shell: while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
-
-    - name: Installing HAproxy
+    - name: Update repositories cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    - name: Install HAproxy
       apt:
         name: haproxy
         state: present
-        update_cache: true
+    - name: Upload haproxy config file
+      template:
+        src: ./haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+    - name: Restart HAProxy
+      service:
+        name: haproxy
+        state: restarted
