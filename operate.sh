@@ -107,3 +107,21 @@ delete_config(){
     fi
     
 }
+
+
+while true
+do
+    echo "$(date) Reading server.conf, we need $no_of_servers nodes"
+
+    existing_servers=$(openstack server list --status ACTIVE --column Name -f value)
+    devservers_count=$(grep -c $sr_server <<< $existing_servers)
+    echo "$(date) Checking solution, we have: $devservers_count nodes. Sleeping."
+    
+    total_servers=$(openstack server list --column Name -f value)
+    total_count=$(grep -c $dev_server <<< $total_servers)
+
+    if (($no_of_servers > $devservers_count)); then
+        devservers_to_add=$(($no_of_servers - $devservers_count))
+        echo "$(date) Creating $devservers_to_add more nodes ..."
+        sequence=$(( $total_count+1 ))
+        devserver_name=${dev_server}${sequence}
