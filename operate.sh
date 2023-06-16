@@ -154,7 +154,24 @@ do
             ((sequence1++))
         done
     else
-        echo "Checking solution, we have: ($no_of_servers) nodes. Sleeping"
+        echo "Checking solution, we have: ($no_of_servers) nodes. Sleeping. "
+    fi
+
+    current_servers=$(openstack server list --status ACTIVE --column Name -f value)
+    new_count=$(grep -c $dev_server <<< $current_servers)
+
+    if [ "$no_of_servers" == "$new_count" ]; then
+        delete_config
+        generate_config
+
+        if [ "$run_status" -eq 1 ]; then
+            echo "$(date) Running ansible playbook"
+            ansible-playbook -i "$hostsfile" site.yaml
+            run_status=0
+        fi
+
     fi
 
 
+    sleep 30
+done
