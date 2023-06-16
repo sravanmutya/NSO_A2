@@ -125,3 +125,21 @@ do
         echo "$(date) Creating $devservers_to_add more nodes ..."
         sequence=$(( $total_count+1 ))
         devserver_name=${dev_server}${sequence}
+
+        run_status=1 ## ansible run status
+        while [ $devservers_to_add -gt 0 ]
+        do   
+            server_create=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network "$natverk_namn" --security-group "$sr_security_group")
+            echo "$(date) Created $devserver_name server"
+            ((devservers_to_add--))
+            sequence=$(( $sequence+1 ))
+            active=false
+            while [ "$active" = false ]; do
+                server_status=$(openstack server show "$devserver_name" -f value -c status)
+                if [ "$server_status" == "ACTIVE" ]; then
+                    active=true
+                fi
+            done
+            devserver_name=${dev_server}${sequence}
+
+        done
