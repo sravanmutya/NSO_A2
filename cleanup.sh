@@ -33,3 +33,18 @@ sshconfig="config"
 knownhosts="known_hosts"
 hostsfile="hosts"
 fip2="$(cat floating_ip2)"
+
+# Retrieving the list of servers with the tag
+servers=$(openstack server list --name "$tag_sr" -c ID -f value)
+n=$(echo "$servers" | wc -l)
+# Deleting each server
+if [ -n "$servers" ]; then
+  echo "$(date) We have $n nodes, releasing them"
+  for server_id in $servers; do
+    openstack server delete $server_id
+  done
+  echo "$(date) Nodes are gone"
+else
+  echo "$(date) No nodes to delete"
+fi
+
