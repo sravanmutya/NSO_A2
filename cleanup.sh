@@ -95,8 +95,8 @@ done
 openstack port delete "$vip_port"
 echo "$(date) Removed virtual port $vip_port"
 
-# Removing the subnet
 
+# Removing the subnet
 # subnet_id=$(openstack router show "$router_name" -f json -c interfaces_info | grep -oP '(?<="subnet_id": ")[^"]+' | awk '{print $1}')
 
 subnet_id=$(openstack subnet list --tag "$tag_sr" -c ID -f value)
@@ -109,3 +109,17 @@ if [ -n "$subnet_id" ]; then
 else
   echo "$(date) No subnets to remove"
 fi
+
+# remove_ext_gateway=$(openstack router unset --external-gateway $existing_routers) 
+
+# Removing router
+routers=$(openstack router list --tag $tag_sr -f value -c Name)
+if [ -n "$routers" ]; then
+  for r in $routers; do
+    openstack router delete "$r"
+  done
+  echo "$(date) Deleted router $sr_router"
+else
+  echo "$(date) No routers to remove"
+fi
+
