@@ -96,30 +96,41 @@ openstack port delete "$vip_port"
 echo "$(date) Removed virtual port $vip_port"
 
 
-# Removing the subnet
-# subnet_id=$(openstack router show "$router_name" -f json -c interfaces_info | grep -oP '(?<="subnet_id": ")[^"]+' | awk '{print $1}')
+# Removing the subnet attached to the networks and router
+# subnet_id=$(openstack router show "${router_name}" -f json -c interfaces_info | grep -oP '(?<="subnet_id": ")[^"]+' | awk '{print $1}')
 
-subnet_id=$(openstack subnet list --tag "$tag_sr" -c ID -f value)
-if [ -n "$subnet_id" ]; then
-  for sub in $subnet_id; do
-    openstack router remove subnet "$sr_router" "$sub"
+subnet_id=$(openstack subnet list --tag "${tag_sr}" -c ID -f value)
+if [ -n "${subnet_id}" ]; then
+  for sub in ${subnet_id}; do
+    openstack router remove subnet "${sr_router}" "$sub"
     openstack subnet delete "$sub"
   done
-  echo "$(date) Removed $sr_subnet subnet"
+  echo "$(date) Removed ${sr_subnet} subnet"
 else
   echo "$(date) No subnets to remove"
 fi
 
-# remove_ext_gateway=$(openstack router unset --external-gateway $existing_routers) 
+# remove_ext_gateway=$(openstack router unset --external-gateway ${existing_routers}) 
 
-# Removing router
-routers=$(openstack router list --tag $tag_sr -f value -c Name)
+# Removing the routers corresponding to the tag
+routers=$(openstack router list --tag ${tag_sr} -f value -c Name)
 if [ -n "$routers" ]; then
   for r in $routers; do
     openstack router delete "$r"
   done
-  echo "$(date) Deleted router $sr_router"
+  echo "$(date) Removed ${sr_router} router" 
 else
   echo "$(date) No routers to remove"
 fi
 
+
+# Removing the networks corresponding to the tag
+networks=$(openstack network list --tag ${tag_sr} -f value -c Name)
+if [ -n "$networks" ]; then
+  for net in $networks; do
+    openstack network delete "$net"
+  done
+  echo "$(date) Removed ${network_name} network"
+else
+  echo "$(date) No networks to remove"
+fi
