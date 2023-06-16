@@ -77,8 +77,21 @@ fi
 
 vip_fip=$(openstack floating ip unset --port "$fip2" )
 # unsetfip=$(openstack floating ip unset )
-echo "$(date) Detached floating IP from virtual port"
+echo "$(date) Floating IP detached from the virtual port"
 
 vip_addr=$(openstack port show "$vip_port" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
 # echo "$(date) Removed virtual IP address $vip_addr"
 echo "$vip_addr" >> vipaddr
+
+# Unassign floating IPs
+unassigned_ips=$(openstack floating ip list --port "$vip_port" --status ACTIVE -f value -c "Floating IP Address")
+
+for ip in $unassigned_ips; do
+    openstack floating ip unset --port "$ip"
+    echo "$(date) Unset floating IP $ip from port"
+done
+
+# Remove the virtual port
+openstack port delete "$vip_port"
+echo "$(date) Removed virtual port $vip_port"
+
