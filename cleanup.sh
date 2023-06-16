@@ -60,3 +60,17 @@ if [ -n "$keypairs" ]; then
 else
   echo "$(date) $sr_keypair key does not exist."
 fi
+
+
+# Remove and detach the floating ip
+floating_ip=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address")
+# floating_ip_list=(${existing_floating_ip// / })
+
+if [ -n "$floating_ip" ]; then
+  for fip in $floating_ip; do
+    openstack floating ip delete "$fip"
+  done
+  echo "$(date) Removed all floating IPs"
+else
+  echo "$(date) No floating IPs to remove"
+fi
