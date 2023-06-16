@@ -45,7 +45,7 @@ if [ -n "$servers" ]; then
   done
   echo "$(date) Nodes are gone"
 else
-  echo "$(date) No nodes to delete"
+  echo "$(date) No nodes to release"
 fi
 
 
@@ -58,7 +58,7 @@ if [ -n "$keypairs" ]; then
   done
   echo "$(date) Removed $sr_keypair key"
 else
-  echo "$(date) $sr_keypair key does not exist."
+  echo "$(date) No keypair to delete."
 fi
 
 
@@ -95,3 +95,17 @@ done
 openstack port delete "$vip_port"
 echo "$(date) Removed virtual port $vip_port"
 
+# Removing the subnet
+
+# subnet_id=$(openstack router show "$router_name" -f json -c interfaces_info | grep -oP '(?<="subnet_id": ")[^"]+' | awk '{print $1}')
+
+subnet_id=$(openstack subnet list --tag "$tag_sr" -c ID -f value)
+if [ -n "$subnet_id" ]; then
+  for sub in $subnet_id; do
+    openstack router remove subnet "$sr_router" "$sub"
+    openstack subnet delete "$sub"
+  done
+  echo "$(date) Removed $sr_subnet subnet"
+else
+  echo "$(date) No subnets to remove"
+fi
