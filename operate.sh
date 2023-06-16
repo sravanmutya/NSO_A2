@@ -130,7 +130,7 @@ do
         while [ $devservers_to_add -gt 0 ]
         do   
             server_create=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network "$natverk_namn" --security-group "$sr_security_group")
-            echo "$(date) Created $devserver_name server"
+            echo "$(date) Created $devserver_name node"
             ((devservers_to_add--))
             sequence=$(( $sequence+1 ))
             active=false
@@ -150,7 +150,7 @@ do
         while [[ $sequence1 -lt $devservers_to_remove ]]; do
             server_to_delete=$(openstack server list --status ACTIVE -f value -c Name | grep -m1 -oP "${tag_sr}"'_dev([1-9]+)')     
             deleted_server=$(openstack server delete "$server_to_delete" --wait)
-            echo "$(date) Deleted $server_to_delete server"
+            echo "$(date) Removed $server_to_delete node"
             ((sequence1++))
         done
     else
