@@ -14,3 +14,15 @@
   hosts: HAproxy
   become: yes
   
+  tasks:
+
+    
+    - name : sudo wait
+      become: yes
+      shell: while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
+
+    - name: Installing HAproxy
+      apt:
+        name: haproxy
+        state: present
+        update_cache: true
