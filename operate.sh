@@ -46,3 +46,14 @@ generate_config(){
     echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
     echo "   StrictHostKeyChecking no" >> $sshconfig
     echo "   PasswordAuthentication no" >> $sshconfig
+    
+    echo " " >> $sshconfig
+    echo "Host $sr_haproxy_server" >> $sshconfig
+    echo "   User ubuntu" >> $sshconfig
+    echo "   HostName $haproxyfip" >> $sshconfig
+    echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+    echo "   StrictHostKeyChecking no" >> $sshconfig
+    echo "   PasswordAuthentication no ">> $sshconfig
+    echo "   ProxyJump $sr_bastion_server" >> $sshconfig
+
+    
