@@ -62,7 +62,7 @@ else
 fi
 
 
-# Remove and detach the floating ip
+# Remove and detach the floating ip from virtual port
 floating_ip=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address")
 # floating_ip_list=(${existing_floating_ip// / })
 
@@ -74,3 +74,11 @@ if [ -n "$floating_ip" ]; then
 else
   echo "$(date) No floating IPs to remove"
 fi
+
+vip_fip=$(openstack floating ip unset --port "$fip2" )
+# unsetfip=$(openstack floating ip unset )
+echo "$(date) Detached floating IP from virtual port"
+
+vip_addr=$(openstack port show "$vip_port" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
+# echo "$(date) Removed virtual IP address $vip_addr"
+echo "$vip_addr" >> vipaddr
