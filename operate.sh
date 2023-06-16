@@ -95,3 +95,15 @@ generate_config(){
     echo "ansible_ssh_private_key_file=~/.ssh/id_rsa" >> $hostsfile
     echo "ansible_ssh_common_args=' -F $sshconfig '" >> $hostsfile
 }
+
+
+delete_config(){
+    if [[ -f "$hostsfile" ]] ; then
+    rm "$hostsfile"
+    fi
+        
+    if [[ -f "$sshconfig" ]] ; then
+        rm "$sshconfig"
+    fi
+    
+}
