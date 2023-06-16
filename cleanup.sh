@@ -134,3 +134,40 @@ if [ -n "$networks" ]; then
 else
   echo "$(date) No networks to remove"
 fi
+
+
+# Removing security groups corresponding to the tag
+security_group=$(openstack security group list --tag $tag_sr -f value -c Name)
+if [ -n "$security_group" ]; then
+  for sec in $security_group; do
+    openstack security group delete "$sec"
+  done
+  echo "$(date) Removed ${sr_security_group} security group"
+else
+  echo "$(date) No security groups to remove"
+fi
+
+if [[ -f "$sshconfig" ]] ; then
+    rm "$sshconfig"
+fi
+
+if [[ -f "$knownhosts" ]] ; then
+    rm "$knownhosts"
+fi
+
+if [[ -f "floating_ip1" ]] ; then
+    rm "floating_ip1"
+fi
+
+if [[ -f "floating_ip2" ]] ; then
+    rm "floating_ip2"
+fi
+
+if [[ -f "$hostsfile" ]] ; then
+    rm "$hostsfile"
+fi
+
+if [[ -f "vipaddr" ]] ; then
+  rm "vipaddr"
+
+fi
