@@ -61,11 +61,11 @@ generate_config(){
     echo "$sr_bastion_server" >> $hostsfile
     echo " " >> $hostsfile
     echo "[HAproxy]" >> $hostsfile
-    echo "$haproxy_server" >> $hostsfile
+    echo "$sr_haproxy_server" >> $hostsfile
     
     echo " " >> $hostsfile
     echo "[primary_proxy]" >> $hostsfile
-    echo "$haproxy_server" >> $hostsfile
+    echo "$sr_haproxy_server" >> $hostsfile
     
     echo " " >> $hostsfile
     echo "[webservers]" >> $hostsfile
