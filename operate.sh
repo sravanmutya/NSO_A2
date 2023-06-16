@@ -154,7 +154,7 @@ do
             ((sequence1++))
         done
     else
-        echo "Required number of dev servers($no_of_servers) already exist."
+        echo "Checking solution, we have: ($no_of_servers) nodes. Sleeping"
     fi
 
 
