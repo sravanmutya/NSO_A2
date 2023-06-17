@@ -237,7 +237,7 @@ fi
 
 
 bastionfip=$(openstack server list --name ${sr_bastion_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
-haproxyfip=$(openstack server show ${sr_haproxy_server} -c addresses | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+haproxyfip=$(openstack server list --name ${sr_haproxy_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
 
 # Update HAproxy server port
 portid_ha1=$(openstack port list --fixed-ip ip-address="${haproxyfip}" -c ID -f value)
@@ -245,35 +245,35 @@ update_port1=$(openstack port set --allowed-address ip-address="${vip_addr}" "${
 
 
 echo "$(date) Generating config file"
-echo "Host ${sr_bastion_server}" >> $sshconfig
+echo "Host $sr_bastion_server" >> $sshconfig
 echo "   User ubuntu" >> $sshconfig
-echo "   HostName ${bastionfip}" >> $sshconfig
+echo "   HostName $bastionfip" >> $sshconfig
 echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
 echo "   UserKnownHostsFile /dev/null" >> $sshconfig
 echo "   StrictHostKeyChecking no" >> $sshconfig
 echo "   PasswordAuthentication no" >> $sshconfig
 
 echo " " >> $sshconfig
-echo "Host ${sr_haproxy_server}" >> $sshconfig
+echo "Host $sr_haproxy_server" >> $sshconfig
 echo "   User ubuntu" >> $sshconfig
-echo "   HostName ${haproxyfip}" >> $sshconfig
+echo "   HostName $haproxyfip" >> $sshconfig
 echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
 echo "   StrictHostKeyChecking no" >> $sshconfig
 echo "   PasswordAuthentication no ">> $sshconfig
-echo "   ProxyJump ${sr_bastion_server}" >> $sshconfig
+echo "   ProxyJump $sr_bastion_server" >> $sshconfig
 
 # Generating hosts file
 echo "[bastion]" >> $hostsfile
-echo "${sr_bastion_server}" >> $hostsfile
+echo "$sr_bastion_server" >> $hostsfile
 echo " " >> $hostsfile
 echo "[HAproxy]" >> $hostsfile
-echo "${sr_haproxy_server}" >> $hostsfile
+echo "$sr_haproxy_server" >> $hostsfile
 
 echo " " >> $hostsfile
 echo "[webservers]" >> $hostsfile
 
 # Get the list of active servers
-active_servers=$(openstack server list --status ACTIVE -f value -c Name | grep -oP "${tag_sr}"'_dev([1-9]+)')
+active_servers=$(openstack server list --status ACTIVE -f value -c Name | grep -oP "$tag_sr"'_dev([1-9]+)')
 echo "$active_Servers"
 # Loop through each active server and extract its IP address
 for server in $active_servers; do
@@ -293,7 +293,7 @@ done
 
 echo " " >> $hostsfile
 echo "[primary_proxy]" >> $hostsfile
-echo "${sr_haproxy_server}" >> $hostsfile
+echo "$sr_haproxy_server" >> $hostsfile
 
 echo " " >> $hostsfile
 echo "[all:vars]" >> $hostsfile
