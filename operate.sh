@@ -115,7 +115,7 @@ do
 
     existing_servers=$(openstack server list --status ACTIVE --column Name -f value)
     devservers_count=$(grep -c $sr_server <<< $existing_servers)
-    echo "$(date) Checking solution, we have: $devservers_count nodes. Sleeping."
+    echo "$(date) Checking solution, we have: $devservers_count nodes."
     
     total_servers=$(openstack server list --column Name -f value)
     total_count=$(grep -c $dev_server <<< $total_servers)
