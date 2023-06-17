@@ -30,8 +30,8 @@ hostsfile="hosts"
 
 
 run_status=0 ##ansible run status
-echo "Running Operation mode for tag: $tag_name using $rc_file for credentials"
-source $openrc_sr
+echo "Running Operation mode for tag: ${tag_sr} using ${openrc_sr} for credentials"
+source ${openrc_sr}
 
 generate_config(){
     bastionfip=$(openstack server list --name $sr_bastion_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
