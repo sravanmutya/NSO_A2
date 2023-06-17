@@ -236,12 +236,12 @@ else
 fi
 
 
-bastionfip=$(openstack server list --name ${sr_bastion_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
-haproxyfip=$(openstack server list --name ${sr_haproxy_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+bastionfip=$(openstack server list --name $sr_bastion_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+haproxyfip=$(openstack server list --name $sr_haproxy_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
 
 # Update HAproxy server port
-portid_ha1=$(openstack port list --fixed-ip ip-address="${haproxyfip}" -c ID -f value)
-update_port1=$(openstack port set --allowed-address ip-address="${vip_addr}" "${portid_ha1}")
+portid_ha1=$(openstack port list --fixed-ip ip-address="$haproxyfip" -c ID -f value)
+update_port1=$(openstack port set --allowed-address ip-address="$vip_addr" "$portid_ha1")
 
 
 echo "$(date) Generating config file"
