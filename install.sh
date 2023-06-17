@@ -252,7 +252,7 @@ echo "   ProxyJump $sr_bastion_server" >> $sshconfig
 echo "[bastion]" >> $hostsfile
 echo "$sr_bastion_server" >> $hostsfile
 echo " " >> $hostsfile
-echo "[HAproxy]" >> $hostsfile
+echo "[haproxy]" >> $hostsfile
 echo "$sr_haproxy_server" >> $hostsfile
 
 echo " " >> $hostsfile
@@ -277,9 +277,6 @@ for server in $active_servers; do
         echo "$server" >> $hostsfile
 done
 
-echo " " >> $hostsfile
-echo "[primary_proxy]" >> $hostsfile
-echo "$sr_haproxy_server" >> $hostsfile
 
 echo " " >> $hostsfile
 echo "[all:vars]" >> $hostsfile
