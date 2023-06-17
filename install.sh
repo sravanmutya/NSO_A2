@@ -34,71 +34,81 @@ knownhosts="known_hosts"
 hostsfile="hosts"
 
 
+
 # Check for current keypairs
 current_keypairs=$(openstack keypair list -f value --column Name)
-if [[ echo "${current_keypairs}" || grep -qFx ${sr_keypair} ]]
+if echo "${current_keypairs}" | grep -qFx ${sr_keypair}
 then
     echo "$(date) ${sr_keypair} already exists"
 else
     # If keypair doesn't exist create one
-    created_keypair=$(openstack keypair create --public-key $publickey "$sr_keypair" )
+    new_keypair=$(openstack keypair create --public-key $publickey "$sr_keypair" )
     echo "$(date)  Adding ${sr_keypair} associated with ${3} "
 fi
+
 
 
 # Checking current networks corresponding to the tag
 current_networks=$(openstack network list --tag "${tag_sr}" --column Name -f value)
 
-if echo "${current_networks}" | grep -qFx ${natverk_namn}; then
+if echo "${current_networks}" | grep -qFx ${natverk_namn} 
+then
     echo "$(date) ${natverk_namn} already exists"
 else
-    # Create network
-    created_network=$(openstack network create --tag "${tag_sr}" "${natverk_namn}" -f json)
     echo "$(date) Did not detect ${natverk_namn} in the OpenStack project, adding it."
+    new_network=$(openstack network create --tag "${tag_sr}" "${natverk_namn}" -f json)
     echo "$(date) Added ${natverk_namn}."
 fi
+
+
 
 # Checking current subnets corresponding to the tag
 current_subnets=$(openstack subnet list --tag "${tag_sr}" --column Name -f value)
 
-if echo "$current_subnets" | grep -qFx ${sr_subnet}; then
-    echo "$(date) $sr_subnet already exists"
-else
-    # Create network
-    created_subnet=$(openstack subnet create --subnet-range 10.10.0.0/24 --allocation-pool start=10.10.0.2,end=10.10.0.30 --tag "$tag_sr" --network "$natverk_namn" "$sr_subnet" -f json)
-    echo "$(date) Created subnet $sr_subnet"
-fi
-
-# check if router already exists
-existing_routers=$(openstack router list --tag "$tag_sr" --column Name -f value)
-if echo "$existing_routers" | grep -qFx $sr_router; then
-    echo "$(date) $sr_router already exists"
-else
-    created_router=$(openstack router create --tag $tag_sr $sr_router )
-    echo "$(date) Created router $sr_router"
-    # Add subnet and external gateway to the router
-    set_gateway=$(openstack router set --external-gateway ext-net $sr_router)
-    add_subnet=$(openstack router add subnet $sr_router $sr_subnet)
-fi
-
-# check if security group already exists
-existing_security_groups=$(openstack security group list --tag $tag_sr -f value)
-# create security group
-if [[ -z "$existing_security_groups" ||  "$existing_security_groups" != *"$sr_security_group"* ]]
+if echo "${current_subnets}" | grep -qFx ${sr_subnet} 
 then
-    created_security_group=$(openstack security group create --tag $tag_sr $sr_security_group -f json)
-    rule1=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 22 --protocol tcp --ingress $sr_security_group)
-    rule2=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 80 --protocol icmp --ingress $sr_security_group)
-    rule3=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 5000 --protocol tcp --ingress $sr_security_group)
-    rule4=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 8080 --protocol tcp --ingress $sr_security_group)
-    rule5=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 6000 --protocol udp --ingress $sr_security_group)
-    rule6=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 9090 --protocol tcp --ingress $sr_security_group)
-    rule7=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 9100 --protocol tcp --ingress $sr_security_group)
-    rule8=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 3000 --protocol tcp --ingress $sr_security_group)
-    rule9=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 161 --protocol udp --ingress $sr_security_group)
-    rule10=$(openstack security group rule create --protocol 112 $sr_security_group) #VVRP protocol
+    echo "$(date) ${sr_subnet} already exists"
+else
+    echo "$(date) Did not detect ${sr_subnet} in the OpenStack project, adding it."
+    new_subnet=$(openstack subnet create --subnet-range 10.10.0.0/24 --allocation-pool start=10.10.0.2,end=10.10.0.30 --tag "${tag_sr}" --network "${natverk_namn}" "${sr_subnet}" -f json)
+    echo "$(date) Added ${sr_subnet}."
+fi
 
-    echo "$(date) Created security group $sr_security_group"
+
+
+# Checking current routers
+current_routers=$(openstack router list --tag "${tag_sr}" --column Name -f value)
+if echo "${current_routers}" | grep -qFx ${sr_router} 
+then
+    echo "$(date) ${sr_router} already exists"
+else
+    echo "$(date) Did not detect ${sr_router} in the OpenStack project, adding it."
+    new_router=$(openstack router create --tag ${tag_sr} ${sr_router})
+    echo "$(date) Added ${sr_router}."
+    echo "$(date) Adding networks to router."
+    set_gateway=$(openstack router set --external-gateway ext-net ${sr_router})
+    add_subnet=$(openstack router add subnet ${sr_router} ${sr_subnet})
+    echo "$(date) Done."
+fi
+
+
+
+# Check current security groups
+current_security_groups=$(openstack security group list --tag ${tag_sr} -f value)
+if [[ -z "${current_security_groups}" ||  "${current_security_groups}" != *"${sr_security_group}"* ]]
+then
+    echo "$(date) Adding security group(s)."
+    created_security_group=$(openstack security group create --tag ${tag_sr} ${sr_security_group} -f json)
+    rule1=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 22 --protocol tcp --ingress ${sr_security_group})
+    rule2=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 80 --protocol icmp --ingress ${sr_security_group})
+    rule3=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 5000 --protocol tcp --ingress ${sr_security_group})
+    rule4=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 8080 --protocol tcp --ingress ${sr_security_group})
+    rule5=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 6000 --protocol udp --ingress ${sr_security_group})
+    rule6=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 9090 --protocol tcp --ingress ${sr_security_group})
+    rule7=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 9100 --protocol tcp --ingress ${sr_security_group})
+    rule8=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 3000 --protocol tcp --ingress ${sr_security_group})
+    rule9=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 161 --protocol udp --ingress ${sr_security_group})
+    rule10=$(openstack security group rule create --protocol 112 ${sr_security_group}) #VVRP protocol
 else
     echo "$(date) $sr_security_group already exists"
 fi
@@ -116,13 +126,6 @@ if [[ -f "$hostsfile" ]] ; then
     rm "$hostsfile"
 fi
 
-# if [[ -f "$f1" ]] ; then
-#     rm "$f1"
-# fi
-
-# if [[ -f "$f2" ]] ; then
-#     rm "$f2"
-# fi
 
 
 ## Create port for Virtual IP
@@ -134,13 +137,13 @@ unassigned_ips=$(openstack floating ip list --status DOWN -f value -c "Floating 
 # Node creation
 existing_servers=$(openstack server list --status ACTIVE --column Name -f value)
 
-if [[ "$existing_servers" == *"$sr_bastion_server"* ]]; then
-        echo "$(date) $sr_bastion_server already exists"
+if [[ "${existing_servers}" == *"${sr_bastion_server}"* ]]; then
+        echo "$(date) ${sr_bastion_server} already exists"
 else
-   if [[ -n "$unassigned_ips" ]]; then
-        fip1=$(echo "$unassigned_ips" | awk '{print $1}')
-        if [[ -n "$fip1" ]]; then
-            echo "$(date) Assigned floating IP for the Bastion"
+   if [[ -n "${unassigned_ips}" ]]; then
+        fip1=$(echo "${unassigned_ips}" | awk '{print $1}')
+        if [[ -n "${fip1}" ]]; then
+            echo "$(date) Assigning floating IP for the Bastion."
         else
             echo "$(date) Creating floating IP for the Bastion"
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
@@ -152,8 +155,8 @@ else
             fip1="$(cat floating_ip1)"
     fi
     bastion=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" ${sr_bastion_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group}) 
-    add_bastion_fip=$(openstack server add floating ip ${sr_bastion_server} $fip1) 
-    echo "$(date) created $sr_bastion_server server"
+    add_bastion_fip=$(openstack server add floating ip ${sr_bastion_server} ${fip1}) 
+    echo "$(date) Added $sr_bastion_server server"
 fi
 
 
@@ -174,9 +177,8 @@ else
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
             fip2="$(cat floating_ip2)"
     fi
-    haproxy=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" $sr_haproxy_server --key-name $sr_keypair --flavor "1C-2GB-50GB" --network $natverk_namn --security-group $sr_security_group)
-    # add_haproxy_fip=$(openstack server add floating ip $sr_haproxy_server $fip2)
-
+    haproxy=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" ${sr_haproxy_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
+    # add_haproxy_fip=$(openstack server add floating ip ${sr_haproxy_server} ${fip2})
     echo "$(date) HAproxy server created successfully"
 fi
 
