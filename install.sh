@@ -28,7 +28,7 @@ sr_security_group="${2}_security_group"
 sr_haproxy_server="${2}_proxy"
 sr_bastion_server="${2}_bastion"
 sr_server="${2}_dev"
-vip_port="${2}_vip" #virtual ip port
+
 sshconfig="config"
 knownhosts="known_hosts"
 hostsfile="hosts"
@@ -128,8 +128,6 @@ fi
 
 
 
-## Create port for Virtual IP
-vip=$(openstack port create --network "$natverk_namn" --fixed-ip subnet="$sr_subnet" --no-security-group "$vip_port" )
 
 unassigned_ips=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address")
 
@@ -186,14 +184,6 @@ else
     echo "$(date) Added ${sr_haproxy_server} server."
 fi
 
-# Attaching the floating IP to the VIP port
-add_vip_fip=$(openstack floating ip set --port "${vip_port}" ${fip2})
-
-vip_addr=$(openstack port show "${vip_port}" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
-echo "$vip_addr" >> vipaddr
-
-# Update vip port with fp pair
-update_port=$(openstack port set --allowed-address ip-address="${fip2}" "${vip_port}")
 
 devservers_count=$(grep -ocP $sr_server <<< $existing_servers)
 
@@ -238,10 +228,6 @@ fi
 
 bastionfip=$(openstack server list --name $sr_bastion_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
 haproxyfip=$(openstack server list --name $sr_haproxy_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
-
-# Update HAproxy server port
-portid_ha1=$(openstack port list --fixed-ip ip-address="$haproxyfip" -c ID -f value)
-update_port1=$(openstack port set --allowed-address ip-address="$vip_addr" "$portid_ha1")
 
 
 echo "$(date) Generating config file"
