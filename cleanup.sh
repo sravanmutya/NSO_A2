@@ -28,7 +28,7 @@ sr_security_group="${2}_security_group"
 sr_haproxy_server="${2}_proxy"
 sr_bastion_server="${2}_bastion"
 sr_server="${2}_dev"
-vip_port="${2}_vip" #virtual ip port
+
 sshconfig="config"
 knownhosts="known_hosts"
 hostsfile="hosts"
@@ -62,7 +62,7 @@ else
 fi
 
 
-# Remove and detach the floating ip from virtual port
+
 floating_ip=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address")
 # floating_ip_list=(${existing_floating_ip// / })
 
@@ -75,25 +75,6 @@ else
   echo "$(date) No floating IPs to remove"
 fi
 
-vip_fip=$(openstack floating ip unset --port "$fip2" )
-# unsetfip=$(openstack floating ip unset )
-echo "$(date) Floating IP detached from the virtual port"
-
-vip_addr=$(openstack port show "$vip_port" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
-# echo "$(date) Removed virtual IP address $vip_addr"
-echo "$vip_addr" >> vipaddr
-
-# Unassign floating IPs
-unassigned_ips=$(openstack floating ip list --port "$vip_port" --status ACTIVE -f value -c "Floating IP Address")
-
-for ip in $unassigned_ips; do
-    openstack floating ip unset --port "$ip"
-    echo "$(date) Unset floating IP $ip from port"
-done
-
-# Remove the virtual port
-openstack port delete "$vip_port"
-echo "$(date) Removed virtual port $vip_port"
 
 
 # Removing the subnet attached to the networks and router
@@ -167,7 +148,4 @@ if [[ -f "$hostsfile" ]] ; then
     rm "$hostsfile"
 fi
 
-if [[ -f "vipaddr" ]] ; then
-  rm "vipaddr"
 
-fi
