@@ -190,22 +190,22 @@ fi
 add_vip_fip=$(openstack floating ip set --port "${vip_port}" ${fip2})
 
 vip_addr=$(openstack port show "${vip_port}" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
-echo "${vip_addr}" >> vipaddr
+echo "$vip_addr" >> vipaddr
 
 # Update vip port with fp pair
 update_port=$(openstack port set --allowed-address ip-address="${fip2}" "${vip_port}")
 
-devservers_count=$(grep -ocP ${sr_server} <<< ${existing_servers})
+devservers_count=$(grep -ocP $sr_server <<< $existing_servers)
 
 
-if((${no_of_servers} > ${devservers_count})); then
-    devservers_to_add=$((${no_of_servers} - ${devservers_count}))
-    sequence=$(( ${devservers_count}+1 ))
-    devserver_name=${sr_server}${sequence}
+if(($no_of_servers > $devservers_count)); then
+    devservers_to_add=$(($no_of_servers - $devservers_count))
+    sequence=$(( $devservers_count+1 ))
+    devserver_name=$sr_server$sequence
 
-    while [ ${devservers_to_add} -gt 0 ]  
+    while [ $devservers_to_add -gt 0 ]  
     do    
-        server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  ${devserver_name} --key-name "${sr_keypair}" --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
+        server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network $natverk_namn --security-group $sr_security_group)
         echo "$(date) Node ${devserver_name} created."
         ((devservers_to_add--))
         
