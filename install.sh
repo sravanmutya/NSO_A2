@@ -42,8 +42,8 @@ then
     echo "$(date) ${sr_keypair} already exists"
 else
     # If keypair doesn't exist create one
-    new_keypair=$(openstack keypair create --public-key $publickey "$sr_keypair" )
-    echo "$(date)  Adding ${sr_keypair} associated with ${3} "
+    new_keypair=$(openstack keypair create --public-key ${ssh_key_sr} "$sr_keypair" )
+    echo "$(date)  Adding ${sr_keypair} associated with ${ssh_key_sr}."
 fi
 
 
