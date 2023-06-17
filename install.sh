@@ -110,7 +110,7 @@ then
     rule9=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 161 --protocol udp --ingress ${sr_security_group})
     rule10=$(openstack security group rule create --protocol 112 ${sr_security_group}) #VVRP protocol
 else
-    echo "$(date) $sr_security_group already exists"
+    echo "$(date) ${sr_security_group} already exists"
 fi
 
 
@@ -191,18 +191,18 @@ echo "$vip_addr" >> vipaddr
 # Update vip port with fp pair
 update_port=$(openstack port set --allowed-address ip-address="$fip2" "$vip_port")
 
-devservers_count=$(grep -ocP $sr_server <<< $existing_servers)
+devservers_count=$(grep -ocP ${sr_server} <<< ${existing_servers})
 
 
-if(($no_of_servers > $devservers_count)); then
-    devservers_to_add=$(($no_of_servers - $devservers_count))
-    sequence=$(( $devservers_count+1 ))
+if((${no_of_servers} > ${devservers_count})); then
+    devservers_to_add=$((${no_of_servers} - ${devservers_count}))
+    sequence=$(( ${devservers_count}+1 ))
     devserver_name=${dev_server}${sequence}
 
-    while [ $devservers_to_add -gt 0 ]  
+    while [ ${devservers_to_add} -gt 0 ]  
     do    
-        server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network $natverk_namn --security-group $sr_security_group)
-        echo "$(date) Created $devserver_name server"
+        server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  ${devserver_name} --key-name "${sr_keypair}" --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
+        echo "$(date) Created ${devserver_name} server"
         ((devservers_to_add--))
         
         active=false
