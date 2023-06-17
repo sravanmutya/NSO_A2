@@ -170,7 +170,7 @@ else
         if [[ -n "$fip2" ]]; then
             echo "$(date) 1 floating IP available for the HAproxy server."
         else
-            echo " $(date) Creating floating IP for the HAproxy (Floating ip for Virtual IP)"
+            echo " $(date)Creating floating IP for the HAproxy (Floating ip for Virtual IP)"
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
             fip2="$(cat floating_ip2)"
         fi
