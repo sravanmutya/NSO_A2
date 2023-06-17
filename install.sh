@@ -181,7 +181,8 @@ else
     fi
     echo "$(date) Did not detect ${sr_haproxy_server}, launching it."
     haproxy=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" ${sr_haproxy_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
-    # add_haproxy_fip=$(openstack server add floating ip ${sr_haproxy_server} ${fip2})
+    add_haproxy_fip=$(openstack server add floating ip ${sr_haproxy_server} ${fip2})
+    echo "$(date) Floating IP assigned for HAProxy."
     echo "$(date) Added ${sr_haproxy_server} server."
 fi
 
@@ -236,7 +237,7 @@ fi
 
 
 bastionfip=$(openstack server list --name ${sr_bastion_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
-haproxyfip=$(openstack server show ${sr_haproxy_server} -c addresses | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==1')
+haproxyfip=$(openstack server show ${sr_haproxy_server} -c addresses | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
 
 # Update HAproxy server port
 portid_ha1=$(openstack port list --fixed-ip ip-address="${haproxyfip}" -c ID -f value)
@@ -244,29 +245,29 @@ update_port1=$(openstack port set --allowed-address ip-address="${vip_addr}" "${
 
 
 echo "$(date) Generating config file"
-echo "Host $sr_bastion_server" >> $sshconfig
+echo "Host ${sr_bastion_server}" >> $sshconfig
 echo "   User ubuntu" >> $sshconfig
-echo "   HostName $bastionfip" >> $sshconfig
+echo "   HostName ${bastionfip}" >> $sshconfig
 echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
 echo "   UserKnownHostsFile /dev/null" >> $sshconfig
 echo "   StrictHostKeyChecking no" >> $sshconfig
 echo "   PasswordAuthentication no" >> $sshconfig
 
 echo " " >> $sshconfig
-echo "Host $sr_haproxy_server" >> $sshconfig
+echo "Host ${sr_haproxy_server}" >> $sshconfig
 echo "   User ubuntu" >> $sshconfig
-echo "   HostName $haproxyfip" >> $sshconfig
+echo "   HostName ${haproxyfip}" >> $sshconfig
 echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
 echo "   StrictHostKeyChecking no" >> $sshconfig
 echo "   PasswordAuthentication no ">> $sshconfig
-echo "   ProxyJump $sr_bastion_server" >> $sshconfig
+echo "   ProxyJump ${sr_bastion_server}" >> $sshconfig
 
 # Generating hosts file
 echo "[bastion]" >> $hostsfile
-echo "$sr_bastion_server" >> $hostsfile
+echo "${sr_bastion_server}" >> $hostsfile
 echo " " >> $hostsfile
 echo "[HAproxy]" >> $hostsfile
-echo "$sr_haproxy_server" >> $hostsfile
+echo "${sr_haproxy_server}" >> $hostsfile
 
 echo " " >> $hostsfile
 echo "[webservers]" >> $hostsfile
@@ -292,7 +293,7 @@ done
 
 echo " " >> $hostsfile
 echo "[primary_proxy]" >> $hostsfile
-echo "$sr_haproxy_server" >> $hostsfile
+echo "${sr_haproxy_server}" >> $hostsfile
 
 echo " " >> $hostsfile
 echo "[all:vars]" >> $hostsfile
@@ -303,6 +304,6 @@ echo "ansible_ssh_common_args=' -F $sshconfig '" >> $hostsfile
 echo "$(date) Running ansible playbook"
 ansible-playbook -i "$hostsfile" site.yaml
 
-echo "Bastion IP address: $fip1"
 
+echo "Bastion IP address: $fip1"
 echo "HAproxy IP address: $fip2"
