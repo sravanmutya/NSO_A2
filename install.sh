@@ -36,7 +36,7 @@ hostsfile="hosts"
 
 # Check for current keypairs
 
-echo "Checking if we have ${sr_keypair} available."
+echo "$(date) Checking if we have ${sr_keypair} available."
 current_keypairs=$(openstack keypair list -f value --column Name)
 if echo "${current_keypairs}" | grep -qFx ${sr_keypair}
 then
@@ -186,13 +186,13 @@ else
 fi
 
 # Attaching the floating IP to the VIP port
-add_vip_fip=$(openstack floating ip set --port "$vip_port" $fip2)
+add_vip_fip=$(openstack floating ip set --port "${vip_port}" ${fip2})
 
-vip_addr=$(openstack port show "$vip_port" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
-echo "$vip_addr" >> vipaddr
+vip_addr=$(openstack port show "${vip_port}" -f value -c fixed_ips | grep -Po '\d+\.\d+\.\d+\.\d+')
+echo "${vip_addr}" >> vipaddr
 
 # Update vip port with fp pair
-update_port=$(openstack port set --allowed-address ip-address="$fip2" "$vip_port")
+update_port=$(openstack port set --allowed-address ip-address="${fip2}" "${vip_port}")
 
 devservers_count=$(grep -ocP ${sr_server} <<< ${existing_servers})
 
@@ -205,7 +205,7 @@ if((${no_of_servers} > ${devservers_count})); then
     while [ ${devservers_to_add} -gt 0 ]  
     do    
         server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  ${devserver_name} --key-name "${sr_keypair}" --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
-        echo "$(date) Created ${devserver_name} server"
+        echo "$(date) Node ${devserver_name} created."
         ((devservers_to_add--))
         
         active=false
