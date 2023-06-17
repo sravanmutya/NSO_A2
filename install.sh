@@ -144,7 +144,7 @@ else
    if [[ -n "${unassigned_ips}" ]]; then
         fip1=$(echo "${unassigned_ips}" | awk '{print $1}')
         if [[ -n "${fip1}" ]]; then
-            echo "$(date) Assigning floating IP for the Bastion."
+            echo "$(date) Floating IP available for the Bastion."
         else
             echo "$(date) Creating floating IP for the Bastion"
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
@@ -157,7 +157,8 @@ else
     fi
     bastion=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" ${sr_bastion_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group}) 
     add_bastion_fip=$(openstack server add floating ip ${sr_bastion_server} ${fip1}) 
-    echo "$(date) Added $sr_bastion_server server"
+    echo "$(date) Floating IP assigned for bastion."
+    echo "$(date) Added ${sr_bastion_server} server."
 fi
 
 
@@ -167,7 +168,7 @@ else
     if [[ -n "$unassigned_ips" ]]; then
         fip2=$(echo "$unassigned_ips" | awk '{print $2}')
         if [[ -n "$fip2" ]]; then
-            echo "$(date) Created floating IP for the HAproxy server (Floating ip for Virtual IP)"
+            echo "$(date) Floating IP available for the HAproxy server."
         else
             echo " $(date) Creating floating IP for the HAproxy (Floating ip for Virtual IP)"
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
@@ -180,7 +181,8 @@ else
     fi
     haproxy=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423" ${sr_haproxy_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
     # add_haproxy_fip=$(openstack server add floating ip ${sr_haproxy_server} ${fip2})
-    echo "$(date) HAproxy server created successfully"
+    echo "$(date) Floating IP assigned for the HAproxy."
+    echo "$(date) Added ${sr_haproxy_server} server."
 fi
 
 # Attaching the floating IP to the VIP port
@@ -198,7 +200,7 @@ devservers_count=$(grep -ocP ${sr_server} <<< ${existing_servers})
 if((${no_of_servers} > ${devservers_count})); then
     devservers_to_add=$((${no_of_servers} - ${devservers_count}))
     sequence=$(( ${devservers_count}+1 ))
-    devserver_name=${dev_server}${sequence}
+    devserver_name=${sr_server}${sequence}
 
     while [ ${devservers_to_add} -gt 0 ]  
     do    
