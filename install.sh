@@ -109,6 +109,7 @@ then
     rule8=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 3000 --protocol tcp --ingress ${sr_security_group})
     rule9=$(openstack security group rule create --remote-ip 0.0.0.0/0 --dst-port 161 --protocol udp --ingress ${sr_security_group})
     rule10=$(openstack security group rule create --protocol 112 ${sr_security_group}) #VVRP protocol
+    echo "$(date) Done."
 else
     echo "$(date) ${sr_security_group} already exists"
 fi
