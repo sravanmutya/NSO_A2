@@ -23,7 +23,7 @@ sr_security_group="${2}_security_group"
 sr_haproxy_server="${2}_proxy"
 sr_bastion_server="${2}_bastion"
 sr_server="${2}_dev"
-vip_port="${2}_vip" #virtual ip port
+
 sshconfig="config"
 knownhosts="known_hosts"
 hostsfile="hosts"
@@ -35,8 +35,8 @@ source ${openrc_sr}
 
 generate_config(){
     bastionfip=$(openstack server list --name $sr_bastion_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
-    # haproxyfip=$(openstack server list --name $sr_haproxy_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==1')
-    haproxyfip=$(openstack server show $sr_haproxy_server -c addresses | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==1')
+    haproxyfip=$(openstack server list --name $sr_haproxy_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+    
     
 
     echo "$(date) Generating config file"
