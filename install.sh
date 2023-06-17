@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Checking if the required arguments are present - the openrc, the tag and the ssh_key
+# Checking if the required arguments are present - the openrc ${1}, the tag ${2} and the ssh_key ${3}
 # The program will not run if these arguments are not present.
 : ${1:?" Please specify the openrc, tag, and ssh_key"}
 : ${2:?" Please specify the openrc, tag, and ssh_key"}
@@ -15,8 +15,8 @@ no_of_servers=$(grep -E '[0-9]' servers.conf) # Fetching the number of nodes fro
 
 
 # Begin deployment by sourcing the given openrc file
-echo "$cd_time Starting deployment of $tag_sr using $openrc_sr for credentials."
-source $openrc_sr
+echo "${cd_time} Starting deployment of $tag_sr using ${openrc_sr} for credentials."
+source ${openrc_sr}
 
 
 # Define variables
@@ -34,32 +34,34 @@ knownhosts="known_hosts"
 hostsfile="hosts"
 
 
-# Check if keypair exists
-existing_keypairs=$(openstack keypair list -f value --column Name)
-if echo "$existing_keypairs" | grep -qFx $sr_keypair; then
-    echo "$(date) $sr_keypair already exists"
+# Check for current keypairs
+current_keypairs=$(openstack keypair list -f value --column Name)
+if [[ echo "${current_keypairs}" || grep -qFx ${sr_keypair} ]]
+then
+    echo "$(date) ${sr_keypair} already exists"
 else
-    # Create Keypair
+    # If keypair doesn't exist create one
     created_keypair=$(openstack keypair create --public-key $publickey "$sr_keypair" )
-    echo "$(date) Created keypair $sr_keypair"
+    echo "$(date)  Adding ${sr_keypair} associated with ${3} "
 fi
 
 
-# Check if network already exists
-existing_networks=$(openstack network list --tag "$tag_sr" --column Name -f value)
+# Checking current networks corresponding to the tag
+current_networks=$(openstack network list --tag "${tag_sr}" --column Name -f value)
 
-if echo "$existing_networks" | grep -qFx $natverk_namn; then
-    echo "$(date) $natverk_namn already exists"
+if echo "${current_networks}" | grep -qFx ${natverk_namn}; then
+    echo "$(date) ${natverk_namn} already exists"
 else
     # Create network
-    created_network=$(openstack network create --tag "$tag_sr" "$natverk_namn" -f json)
-    echo "$(date) Created network $natverk_namn"
+    created_network=$(openstack network create --tag "${tag_sr}" "${natverk_namn}" -f json)
+    echo "$(date) Did not detect ${natverk_namn} in the OpenStack project, adding it."
+    echo "$(date) Added ${natverk_namn}."
 fi
 
-# Check if subnet already exists
-existing_subnets=$(openstack subnet list --tag "$tag_sr" --column Name -f value)
+# Checking current subnets corresponding to the tag
+current_subnets=$(openstack subnet list --tag "${tag_sr}" --column Name -f value)
 
-if echo "$existing_subnets" | grep -qFx $sr_subnet; then
+if echo "$current_subnets" | grep -qFx ${sr_subnet}; then
     echo "$(date) $sr_subnet already exists"
 else
     # Create network
