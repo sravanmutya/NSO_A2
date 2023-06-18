@@ -128,11 +128,11 @@ fi
 
 
 
-
 unassigned_ips=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address")
 
 
 # Node creation
+
 existing_servers=$(openstack server list --status ACTIVE --column Name -f value)
 
 if [[ "${existing_servers}" == *"${sr_bastion_server}"* ]]; then
@@ -143,12 +143,12 @@ else
         if [[ -n "${fip1}" ]]; then
             echo "$(date) 1 floating IP available for the Bastion."
         else
-            echo "$(date) Creating floating IP for the Bastion"
+            echo "$(date) Creating floating IP for the Bastion 1"
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
         fi
     else
-            echo "$(date) Creating floating IP for the Bastion"
+            echo "$(date) Creating floating IP for the Bastion 2"
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
     fi
@@ -168,12 +168,12 @@ else
         if [[ -n "$fip2" ]]; then
             echo "$(date) 1 floating IP available for the HAproxy server."
         else
-            echo "$(date) Creating floating IP for the HAproxy (Floating ip for Virtual IP)"
+            echo " $(date) Creating floating IP for the HAproxy "
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
             fip2="$(cat floating_ip2)"
         fi
     else
-            echo "$(date) Creating floating IP for HAproxy (Floating ip for Virtual IP)"
+            echo "$(date) Creating floating IP for HAproxy "
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
             fip2="$(cat floating_ip2)"
     fi
@@ -182,20 +182,22 @@ else
     add_haproxy_fip=$(openstack server add floating ip ${sr_haproxy_server} ${fip2})
     echo "$(date) Floating IP assigned for HAProxy."
     echo "$(date) Added ${sr_haproxy_server} server."
+    
 fi
 
 
-devservers_count=$(grep -ocP $sr_server <<< $existing_servers)
+
+devservers_count=$(grep -ocP ${sr_server} <<< ${existing_servers})
 
 
-if(($no_of_servers > $devservers_count)); then
-    devservers_to_add=$(($no_of_servers - $devservers_count))
-    sequence=$(( $devservers_count+1 ))
-    devserver_name=$sr_server$sequence
+if((${no_of_servers} > ${devservers_count})); then
+    devservers_to_add=$((${no_of_servers} - ${devservers_count}))
+    sequence=$(( ${devservers_count}+1 ))
+    devserver_name=${sr_server}${sequence}
 
-    while [ $devservers_to_add -gt 0 ]  
+    while [ ${devservers_to_add} -gt 0 ]  
     do    
-        server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network $natverk_namn --security-group $sr_security_group)
+        server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  ${devserver_name} --key-name "${sr_keypair}" --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
         echo "$(date) Node ${devserver_name} created."
         ((devservers_to_add--))
         
@@ -226,8 +228,9 @@ else
 fi
 
 
-bastionfip=$(openstack server list --name $sr_bastion_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
-haproxyfip=$(openstack server list --name $sr_haproxy_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+bastionfip=$(openstack server list --name ${sr_bastion_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+haproxyfip=$(openstack server list --name ${sr_haproxy_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
+
 
 
 echo "$(date) Generating config file"
