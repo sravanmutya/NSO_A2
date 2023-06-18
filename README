@@ -1,17 +1,21 @@
-Instructions to run -
+Instructions to run the script -
 The three scripts can be run in the following way
 
 To run install mode 
-1. Change directory to NSO_A2
+1. Change current directory to NSO_A2
 2. Run the command - ./install.sh <openrc> <tag> <ssh_key>
 
 To run install mode 
-1. Change directory to NSO_A2
+1. Change current directory to NSO_A2
 2. Run the command - ./operate.sh <openrc> <tag> <ssh_key>
 
 To run cleanup mode 
-1. Change directory to NSO_A2
+1. Change current directory to NSO_A2
 2. Run the command - ./cleanup.sh <openrc> <tag> <ssh_key>
 
-Note - If there are symbols such as ' or " present in the name of the rc file, please remove the symbols before 
-passing the file as argument.
+Where <openrc> pertains to the rc file with access credentials to the cloud, <tag> pertains to any simple, preferably alphanumeric
+string for easier identification of created items (for example, srmu21), 
+the <ssh_key> pertains to the SSH key to be used for SSH access.
+
+Note - If there are symbols such as ' or " present in the name of the rc file, please remove the symbols by renaming the file before 
+passing it as an argument.
