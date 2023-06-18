@@ -35,12 +35,12 @@ defaults
 	errorfile 504 /etc/haproxy/errors/504.http
 
 frontend web
-    bind *:80
+    bind *:5000
     default_backend web_servers
 
 backend web_servers
 	mode http
     balance roundrobin
 {% for server in groups['webservers'] %}
-    server  {{ server }} {{ hostvars[server]['ansible_default_ipv4']['address'] }}:80 check
+    server  {{ server }} {{ hostvars[server]['ansible_default_ipv4']['address'] }}:5000 check
 {% endfor %}
