@@ -62,6 +62,11 @@
       template:
         src: ./haproxy.cfg.j2
         dest: /etc/haproxy/haproxy.cfg
+    - name: Install snmp and snmp-mibs-downloader
+      apt: 
+        update_cache: yes
+        name: [ 'snmp', 'snmp-mibs-downloader' ] 
+        state: latest
     - name: Restart HAProxy
       service:
         name: haproxy
