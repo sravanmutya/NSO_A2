@@ -30,8 +30,8 @@ hostsfile="hosts"
 
 
 run_status=0 ##ansible run status
-echo "Running Operation mode for tag: ${tag_sr} using ${openrc_sr} for credentials"
-source ${openrc_sr}
+echo "Running operate mode for tag:$tag_sr using $openrc_sr for credentials"
+source $openrc_sr
 
 generate_config(){
     bastionfip=$(openstack server list --name $sr_bastion_server -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
@@ -44,6 +44,7 @@ generate_config(){
     echo "   User ubuntu" >> $sshconfig
     echo "   HostName $bastionfip" >> $sshconfig
     echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+    echo "   UserKnownHostsFile /dev/null" >> $sshconfig
     echo "   StrictHostKeyChecking no" >> $sshconfig
     echo "   PasswordAuthentication no" >> $sshconfig
     
@@ -60,12 +61,9 @@ generate_config(){
     echo "[bastion]" >> $hostsfile
     echo "$sr_bastion_server" >> $hostsfile
     echo " " >> $hostsfile
-    echo "[HAproxy]" >> $hostsfile
+    echo "[haproxy]" >> $hostsfile
     echo "$sr_haproxy_server" >> $hostsfile
     
-    echo " " >> $hostsfile
-    echo "[primary_proxy]" >> $hostsfile
-    echo "$sr_haproxy_server" >> $hostsfile
     
     echo " " >> $hostsfile
     echo "[webservers]" >> $hostsfile
@@ -111,20 +109,20 @@ delete_config(){
 
 while true
 do
-    echo "$(date) Reading server.conf, we need $no_of_servers nodes"
+    echo "$(date) We need $no_of_servers nodes as specified in servers.conf"
 
     existing_servers=$(openstack server list --status ACTIVE --column Name -f value)
     devservers_count=$(grep -c $sr_server <<< $existing_servers)
-    echo "$(date) Checking solution, we have: $devservers_count nodes."
+    echo "$(date) $devservers_count nodes available."
     
     total_servers=$(openstack server list --column Name -f value)
-    total_count=$(grep -c $dev_server <<< $total_servers)
+    total_count=$(grep -c $sr_server <<< $total_servers)
 
     if (($no_of_servers > $devservers_count)); then
         devservers_to_add=$(($no_of_servers - $devservers_count))
         echo "$(date) Creating $devservers_to_add more nodes ..."
         sequence=$(( $total_count+1 ))
-        devserver_name=${dev_server}${sequence}
+        devserver_name=${sr_server}${sequence}
 
         run_status=1 ## ansible run status
         while [ $devservers_to_add -gt 0 ]
@@ -140,7 +138,7 @@ do
                     active=true
                 fi
             done
-            devserver_name=${dev_server}${sequence}
+            devserver_name=${sr_server}${sequence}
 
         done
 
@@ -154,24 +152,28 @@ do
             ((sequence1++))
         done
     else
-        echo "Checking solution, we have: ($no_of_servers) nodes. Sleeping. "
+        echo "$(date) Required number of nodes are present."
     fi
-
+    
+    
     current_servers=$(openstack server list --status ACTIVE --column Name -f value)
-    new_count=$(grep -c $dev_server <<< $current_servers)
+    new_count=$(grep -c $sr_server <<< $current_servers)
 
-    if [ "$no_of_servers" == "$new_count" ]; then
-        delete_config
-        generate_config
-
-        if [ "$run_status" -eq 1 ]; then
+    
+    if [[ "$no_of_servers" == "$new_count" &&  "$run_status" -eq 0 ]]
+    then
+        echo "$(date) Sleeping 30 seconds. Press CTRL-C if you wish to exit. "    
+    else
+            delete_config
+            generate_config
             echo "$(date) Running ansible playbook"
             ansible-playbook -i "$hostsfile" site.yaml
             run_status=0
-        fi
+            echo "$(date) Done, solution has been deployed."
+    
 
     fi
-
-
+   
+    
     sleep 30
 done
