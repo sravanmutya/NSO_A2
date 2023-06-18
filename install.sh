@@ -146,12 +146,12 @@ else
         if [[ -n "${fip1}" ]]; then
             echo "$(date) 1 floating IP available for the Bastion."
         else
-            echo "$(date) Creating floating IP for the Bastion 1"
+            echo "$(date) Creating floating IP for the Bastion "
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
         fi
     else
-            echo "$(date) Creating floating IP for the Bastion 2"
+            echo "$(date) Creating floating IP for the Bastion "
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
     fi
@@ -176,7 +176,7 @@ else
             fip2="$(cat floating_ip2)"
         fi
     else
-            echo "$(date) Creating floating IP for HAproxy "
+            echo "$(date) Creating floating IP for the HAproxy "
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
             fip2="$(cat floating_ip2)"
     fi
