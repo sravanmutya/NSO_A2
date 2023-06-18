@@ -111,7 +111,7 @@ if [ -n "$networks" ]; then
   for net in $networks; do
     openstack network delete "$net"
   done
-  echo "$(date) Removed ${network_name} network"
+  echo "$(date) Removed ${natverk_namn} network"
 else
   echo "$(date) No networks to remove"
 fi
