@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SECONDS=0 # Using this to find how much time the solution takes to deploy
+
+
 # Checking if the required arguments are present - the openrc ${1}, the tag ${2} and the ssh_key ${3}
 # The program will not run if these arguments are not present.
 : ${1:?" Please specify the openrc, tag, and ssh_key"}
@@ -293,3 +296,7 @@ ansible-playbook -i "$hostsfile" site.yaml
 
 echo "Bastion IP address: $fip1"
 echo "HAproxy IP address: $fip2"
+
+# Displaying time taken by the script to deploy the environment
+duration=$SECONDS
+echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
