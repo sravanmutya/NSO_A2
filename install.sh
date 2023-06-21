@@ -13,8 +13,9 @@ SECONDS=0 # Using this to find how much time the solution takes to deploy
 cd_time=$(date)
 openrc_sr=${1}     # Fetching the openrc access file
 tag_sr=${2}        # Fetching the tag for easy identification of items
-ssh_key_sr=${3}    # Fetching the ssh_key for secure remote access
+ssh_key_path=${3}    # Fetching the ssh_key for secure remote access
 no_of_servers=$(grep -E '[0-9]' servers.conf) # Fetching the number of nodes from servers.conf
+
 
 
 # Begin deployment by sourcing the given openrc file
@@ -45,8 +46,8 @@ if echo "${current_keypairs}" | grep -qFx ${sr_keypair}
 then
     echo "$(date) ${sr_keypair} already exists"
 else    
-    new_keypair=$(openstack keypair create --public-key ${ssh_key_sr} "$sr_keypair" )
-    echo "$(date)  Adding ${sr_keypair} associated with ${ssh_key_sr}."
+    new_keypair=$(openstack keypair create --public-key "${ssh_key_path}" "${sr_keypair}" )
+    echo "$(date) Adding ${sr_keypair} associated with ${ssh_key_path}."
 fi
 
 
@@ -146,12 +147,12 @@ else
         if [[ -n "${fip1}" ]]; then
             echo "$(date) 1 floating IP available for the Bastion."
         else
-            echo "$(date) Creating floating IP for the Bastion 1"
+            echo "$(date) Creating floating IP for the Bastion "
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
         fi
     else
-            echo "$(date) Creating floating IP for the Bastion 2"
+            echo "$(date) Creating floating IP for the Bastion "
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
     fi
@@ -235,12 +236,14 @@ bastionfip=$(openstack server list --name ${sr_bastion_server} -c Networks -f va
 haproxyfip=$(openstack server list --name ${sr_haproxy_server} -c Networks -f value | grep -Po '\d+\.\d+\.\d+\.\d+' | awk 'NR==2')
 
 
-
+ssh_key_sr=${ssh_key_path::-4} # Removing .pub from the ssh key path
+ 
+ 
 echo "$(date) Generating config file"
 echo "Host $sr_bastion_server" >> $sshconfig
 echo "   User ubuntu" >> $sshconfig
 echo "   HostName $bastionfip" >> $sshconfig
-echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+echo "   IdentityFile $ssh_key_sr" >> $sshconfig
 echo "   UserKnownHostsFile /dev/null" >> $sshconfig
 echo "   StrictHostKeyChecking no" >> $sshconfig
 echo "   PasswordAuthentication no" >> $sshconfig
@@ -249,7 +252,7 @@ echo " " >> $sshconfig
 echo "Host $sr_haproxy_server" >> $sshconfig
 echo "   User ubuntu" >> $sshconfig
 echo "   HostName $haproxyfip" >> $sshconfig
-echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+echo "   IdentityFile $ssh_key_sr" >> $sshconfig
 echo "   StrictHostKeyChecking no" >> $sshconfig
 echo "   PasswordAuthentication no ">> $sshconfig
 echo "   ProxyJump $sr_bastion_server" >> $sshconfig
@@ -274,7 +277,7 @@ for server in $active_servers; do
         echo "Host $server" >> $sshconfig
         echo "   User ubuntu" >> $sshconfig
         echo "   HostName $ip_address" >> $sshconfig
-        echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+        echo "   IdentityFile $ssh_key_sr" >> $sshconfig
         echo "   UserKnownHostsFile=~/dev/null" >> $sshconfig
         echo "   StrictHostKeyChecking no" >> $sshconfig
         echo "   PasswordAuthentication no" >> $sshconfig
@@ -287,7 +290,7 @@ done
 echo " " >> $hostsfile
 echo "[all:vars]" >> $hostsfile
 echo "ansible_user=ubuntu" >> $hostsfile
-echo "ansible_ssh_private_key_file=~/.ssh/id_rsa" >> $hostsfile
+echo "ansible_ssh_private_key_file=$ssh_key_sr" >> $hostsfile
 echo "ansible_ssh_common_args=' -F $sshconfig '" >> $hostsfile
 
 echo "$(date) Running ansible playbook"
