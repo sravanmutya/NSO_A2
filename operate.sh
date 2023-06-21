@@ -10,8 +10,10 @@
 cd_time=$(date)
 openrc_sr=${1}     # Fetching the openrc access file
 tag_sr=${2}        # Fetching the tag for easy identification of items
-ssh_key_sr=${3}    # Fetching the ssh_key for secure remote access
+ssh_key_path=${3}   # Fetching the ssh_key for secure remote access
 
+
+ssh_key_sr=${ssh_key_path::-4} # Removing .pub from the ssh key path
 
 
 # Define variables
@@ -30,7 +32,7 @@ hostsfile="hosts"
 
 
 run_status=0 ##ansible run status
-echo "Running operate mode for tag:$tag_sr using $openrc_sr for credentials"
+echo "Running operate mode for tag: $tag_sr using $openrc_sr for credentials"
 source $openrc_sr
 
 generate_config(){
@@ -43,7 +45,7 @@ generate_config(){
     echo "Host $sr_bastion_server" >> $sshconfig
     echo "   User ubuntu" >> $sshconfig
     echo "   HostName $bastionfip" >> $sshconfig
-    echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+    echo "   IdentityFile $ssh_key_sr" >> $sshconfig
     echo "   UserKnownHostsFile /dev/null" >> $sshconfig
     echo "   StrictHostKeyChecking no" >> $sshconfig
     echo "   PasswordAuthentication no" >> $sshconfig
@@ -52,7 +54,7 @@ generate_config(){
     echo "Host $sr_haproxy_server" >> $sshconfig
     echo "   User ubuntu" >> $sshconfig
     echo "   HostName $haproxyfip" >> $sshconfig
-    echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+    echo "   IdentityFile $ssh_key_sr" >> $sshconfig
     echo "   StrictHostKeyChecking no" >> $sshconfig
     echo "   PasswordAuthentication no ">> $sshconfig
     echo "   ProxyJump $sr_bastion_server" >> $sshconfig
@@ -78,7 +80,7 @@ generate_config(){
             echo "Host $server" >> $sshconfig
             echo "   User ubuntu" >> $sshconfig
             echo "   HostName $ip_address" >> $sshconfig
-            echo "   IdentityFile ~/.ssh/id_rsa" >> $sshconfig
+            echo "   IdentityFile $ssh_key_sr" >> $sshconfig
             echo "   UserKnownHostsFile=~/dev/null" >> $sshconfig
             echo "   StrictHostKeyChecking no" >> $sshconfig
             echo "   PasswordAuthentication no" >> $sshconfig
@@ -90,7 +92,7 @@ generate_config(){
     echo " " >> $hostsfile
     echo "[all:vars]" >> $hostsfile
     echo "ansible_user=ubuntu" >> $hostsfile
-    echo "ansible_ssh_private_key_file=~/.ssh/id_rsa" >> $hostsfile
+    echo "ansible_ssh_private_key_file=$ssh_key_sr" >> $hostsfile
     echo "ansible_ssh_common_args=' -F $sshconfig '" >> $hostsfile
 }
 
