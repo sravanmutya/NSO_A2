@@ -125,6 +125,9 @@ if [[ -f "$hostsfile" ]] ; then
     rm "$hostsfile"
 fi
 
+if [[ -f "$nodes_yaml" ]] ; then
+    rm "$nodes_yaml"
+fi
 
 
 unassigned_ips=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address")
