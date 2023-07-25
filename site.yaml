@@ -1,5 +1,6 @@
 ---
 - hosts: webservers
+  any_errors_fatal: true
   gather_facts: yes
   become: yes
   tasks:
@@ -38,15 +39,18 @@
               state: latest
     
     - name: Copy the snmpd config file
-      template:
-              src: snmpd.conf.j2
-              dest: "/etc/snmp/snmpd.conf"
+      ansible.builtin.copy:
+              src: ./snmpd.conf
+              dest: /etc/snmp/snmpd.conf
+
     - name: Run the snmpdaemon
       service:
               name: snmpd
-              state: restarted    
+              state: restarted 
 
-- hosts: haproxy
+
+- hosts: proxy
+  any_errors_fatal: true
   gather_facts: yes
   become: yes
   tasks:
@@ -54,20 +58,59 @@
       apt:
         update_cache: yes
         cache_valid_time: 3600
-    - name: Install nginx
+
+    - name: Installing NGINX 
       apt:
         name: nginx
         state: present
-    - name: Upload nginx config file
-      template:
+
+    - name: uploading NGINX configuration file
+      ansible.builtin.template:
         src: ./nginx.conf.j2
         dest: /etc/nginx/nginx.conf
-    - name: Install snmp and snmp-mibs-downloader
-      apt: 
-        update_cache: yes
-        name: [ 'snmp', 'snmp-mibs-downloader' ] 
-        state: latest
-    - name: Restart HAProxy
+
+    - name: Restarting NGINX
       service:
-        name: haproxy
+        name: nginx
         state: restarted
+
+- hosts: bastion
+  any_errors_fatal: true
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: Update repositories cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Python3-pip
+      apt:
+         name: python3-pip
+         state: present
+         
+    - name: Install required modules
+      ansible.builtin.pip:
+        name: [ 'flask', 'ping3' ]
+        executable: pip3
+        state: latest
+
+    - name: Uploading the alive.py application
+      copy:
+        src: ./alive.py
+        dest: /home/ubuntu
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+
+    - name: Copy nodes.yaml
+      ansible.builtin.copy:
+              src: ./nodes.yaml
+              dest: /home/ubuntu
+
+    - name: Running the application
+      shell: python3 /home/ubuntu/alive.py
+      async: 3600
+      poll: 0
+
+
