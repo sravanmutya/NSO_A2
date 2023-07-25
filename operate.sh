@@ -29,10 +29,11 @@ sr_server="${2}_dev"
 sshconfig="config"
 knownhosts="known_hosts"
 hostsfile="hosts"
+nodes_yaml="nodes.yaml"
 
 
 run_status=0 ##ansible run status
-echo "Running operate mode for tag: $tag_sr using $openrc_sr for credentials"
+echo "$(date) Running operate mode for tag: $tag_sr using $openrc_sr for credentials"
 source $openrc_sr
 
 generate_config(){
@@ -63,15 +64,16 @@ generate_config(){
     echo "[bastion]" >> $hostsfile
     echo "$sr_bastion_server" >> $hostsfile
     echo " " >> $hostsfile
-    echo "[haproxy]" >> $hostsfile
+    echo "[proxy]" >> $hostsfile
     echo "$sr_haproxy_server" >> $hostsfile
     
     
     echo " " >> $hostsfile
     echo "[webservers]" >> $hostsfile
-
+    
     # Retrieving the list of servers that are running
-    active_servers=$(openstack server list --status ACTIVE -f value -c Name | grep -oP "${tag_sr}"'_dev([1-9]+)')
+    
+    active_servers=$(openstack server list --status ACTIVE -f value -c Name | grep -oP "${tag_sr}"'_dev([0-9]+)')
     echo "$active_Servers"
     # Retrieving the IP address of each server
     for server in $active_servers; do
@@ -87,8 +89,10 @@ generate_config(){
             echo "   ProxyJump $sr_bastion_server" >> $sshconfig 
 
             echo "$server" >> $hostsfile
-    done
 
+            echo "$ip_address" >> $nodes_yaml
+    done
+   
     echo " " >> $hostsfile
     echo "[all:vars]" >> $hostsfile
     echo "ansible_user=ubuntu" >> $hostsfile
@@ -99,13 +103,20 @@ generate_config(){
 
 delete_config(){
     if [[ -f "$hostsfile" ]] ; then
-    rm "$hostsfile"
+        rm "$hostsfile"
     fi
-        
+      
     if [[ -f "$sshconfig" ]] ; then
         rm "$sshconfig"
     fi
     
+    if [[ -f "$knownhosts" ]] ; then
+        rm "$knownhosts"
+    fi
+
+    if [[ -f "$nodes_yaml" ]] ; then
+        rm "$nodes_yaml"
+    fi
 }
 
 while true
@@ -126,13 +137,27 @@ do
     if (($no_of_servers > $devservers_count)); then
         devservers_to_add=$(($no_of_servers - $devservers_count))
         echo "$(date) Creating $devservers_to_add more nodes ..."
-        sequence=$(( $total_count+1 ))
-        devserver_name=${sr_server}${sequence}
+        v=$[ $RANDOM % 40 + 10 ]
+        devserver_name=${sr_server}${v}
+        servernames=$(openstack server list --status ACTIVE -f value -c Name)
+    
+        # Checking for existence of nodes with similar names to avoid name clashes
+        check_name=0
+        until [[ check_name -eq 1 ]]
+        do  
+            if echo "${servernames}" | grep -qFx ${devserver_name} 
+            then
+            v=$[ $RANDOM % 40 + 10 ]
+            devserver_name=${sr_server}${v}
+            else
+            check_name=1     
+            fi
+        done
 
         run_status=1 ## ansible run status
         while [ $devservers_to_add -gt 0 ]
         do   
-            server_create=$(openstack server create --image "Ubuntu 20.04 Focal Fossa 20200423"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network "$natverk_namn" --security-group "$sr_security_group")
+            server_create=$(openstack server create --image "Ubuntu 20.04 Focal Fossa x86_64"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network "$natverk_namn" --security-group "$sr_security_group")
             echo "$(date) Created $devserver_name node"
             ((devservers_to_add--))
             sequence=$(( $sequence+1 ))
@@ -143,15 +168,31 @@ do
                     active=true
                 fi
             done
-            devserver_name=${sr_server}${sequence}
+            servernames=$(openstack server list --status ACTIVE -f value -c Name)
+            v=$[ $RANDOM % 40 + 10 ]
+            devserver_name=${sr_server}${v}
+        
+            check_name=0
+        
+            until [[ check_name -eq 1 ]]
+            do  
+                if echo "${servernames}" | grep -qFx ${devserver_name} 
+                then
+                v=$[ $RANDOM % 40 + 10 ]
+                devserver_name=${sr_server}${v} 
+                else
+                check_name=1     
+                fi
+            done
 
         done
 
     elif (( $no_of_servers < $devservers_count )); then
         devservers_to_remove=$(($devservers_count - $no_of_servers))
         sequence1=0
+        echo "$(date) Removing $devservers_to_remove nodes."
         while [[ $sequence1 -lt $devservers_to_remove ]]; do
-            server_to_delete=$(openstack server list --status ACTIVE -f value -c Name | grep -m1 -oP "${tag_sr}"'_dev([1-9]+)')     
+            server_to_delete=$(openstack server list --status ACTIVE -f value -c Name | grep -m1 -oP "${tag_sr}"'_dev([0-9]+)')     
             deleted_server=$(openstack server delete "$server_to_delete" --wait)
             echo "$(date) Removed $server_to_delete node"
             ((sequence1++))
@@ -167,15 +208,18 @@ do
     
     if [[ "$no_of_servers" == "$new_count" &&  "$run_status" -eq 0 ]]
     then
-        echo "$(date) Sleeping 30 seconds. Press CTRL-C if you wish to exit. "    
+        echo "$(date) Sleeping 30 seconds. Press CTRL-C if you wish to exit."    
     else
             delete_config
             generate_config
             echo "$(date) Running ansible playbook"
             ansible-playbook -i "$hostsfile" site.yaml
+            sleep 5
             run_status=0
+            echo "$(date) Checking node availability through the ${sr_bastion_server}."
+            curl http://$bastionfip:5000
             echo "$(date) Done, solution has been deployed."
-    
+            echo "$(date) Sleeping 30 seconds. Press CTRL-C if you wish to exit."
 
     fi
    
