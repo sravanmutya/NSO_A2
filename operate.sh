@@ -154,7 +154,7 @@ do
             fi
         done
 
-        run_status=1 ## ansible run status
+        run_status=1 # Ansible run status for increased number of nodes
         while [ $devservers_to_add -gt 0 ]
         do   
             server_create=$(openstack server create --image "Ubuntu 20.04 Focal Fossa x86_64"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network "$natverk_namn" --security-group "$sr_security_group")
@@ -191,6 +191,7 @@ do
         devservers_to_remove=$(($devservers_count - $no_of_servers))
         sequence1=0
         echo "$(date) Removing $devservers_to_remove nodes."
+        run_status=1 # Ansible run status for reduced nummer of nodes
         while [[ $sequence1 -lt $devservers_to_remove ]]; do
             server_to_delete=$(openstack server list --status ACTIVE -f value -c Name | grep -m1 -oP "${tag_sr}"'_dev([0-9]+)')     
             deleted_server=$(openstack server delete "$server_to_delete" --wait)
