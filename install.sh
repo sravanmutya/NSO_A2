@@ -221,7 +221,7 @@ done
     while [ ${devservers_to_add} -gt 0 ]  
     do    
         server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa x86_64"  ${devserver_name} --key-name "${sr_keypair}" --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
-        echo "$(date) Node with unique ${devserver_name} created."
+        echo "$(date) Node with unique name - ${devserver_name} created."
         ((devservers_to_add--))
         
         active=false
