@@ -199,28 +199,31 @@ devservers_count=$(grep -ocP ${sr_server} <<< ${existing_servers})
 if((${no_of_servers} > ${devservers_count})); then
     
     devservers_to_add=$((${no_of_servers} - ${devservers_count}))
-    v=$[ $RANDOM % 40 + 10 ]
-    devserver_name=${sr_server}${v}
+    # v=$[ $RANDOM % 40 + 10 ]
+    # devserver_name=${sr_server}${v}
     servernames=$(openstack server list --status ACTIVE -f value -c Name)
     
-    # Checking for existence of nodes - also avoids name clashes
-    check_name=0
-    until [[ check_name -eq 1 ]]
-    do  
-        if echo "${servernames}" | grep -qFx ${devserver_name} 
-        then
-        v=$[ $RANDOM % 40 + 10 ]
-        devserver_name=${sr_server}${v}
-        else
-        check_name=1     
-        fi
-    done
+
+# Initial values
+check_name=0
+
+# Loop until a unique server name is found
+while [ $check_name -eq 0 ]; do
+    v=$(( RANDOM % 40 + 10 ))
+    devserver_name="${sr_server}${v}"
     
+    if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
+        check_name=1
+    fi
+done
+
+
+
     echo "$(date) Creating the required number of nodes - $no_of_servers."
     while [ ${devservers_to_add} -gt 0 ]  
     do    
         server_output=$(openstack server create --image "Ubuntu 20.04 Focal Fossa x86_64"  ${devserver_name} --key-name "${sr_keypair}" --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
-        echo "$(date) Node ${devserver_name} created."
+        echo "$(date) Node with unique ${devserver_name} created."
         ((devservers_to_add--))
         
         active=false
@@ -232,21 +235,22 @@ if((${no_of_servers} > ${devservers_count})); then
         done
         
         servernames=$(openstack server list --status ACTIVE -f value -c Name)
-        v=$[ $RANDOM % 40 + 10 ]
-        devserver_name=${sr_server}${v}
+        # v=$[ $RANDOM % 40 + 10 ]
+        # devserver_name=${sr_server}${v}
         
         check_name=0
         
-        until [[ check_name -eq 1 ]]
-        do  
-        if echo "${servernames}" | grep -qFx ${devserver_name} 
-        then
-        v=$[ $RANDOM % 40 + 10 ]
-        devserver_name=${sr_server}${v} 
-        else
-        check_name=1     
-        fi
+        # Loop until a unique server name is found
+        while [ $check_name -eq 0 ]; do
+            v=$(( RANDOM % 40 + 10 ))
+            devserver_name="${sr_server}${v}"
+    
+            if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
+                check_name=1
+            fi
         done
+
+
     
     
 
@@ -339,7 +343,7 @@ echo "$(date) Running ansible playbook"
 ansible-playbook -i "$hostsfile" site.yaml
 sleep 5
 echo "$(date) Checking node availability through ${sr_bastion_server}."
-curl "http://$bastionfip:5000"
+curl "http://$bastionfip:5000" # alive.py is accessed on port 5000 of Bastion 
 echo "$(date) Deployment done."
 echo "Bastion IP address: $bastionfip"
 echo "Proxy IP address: $haproxyfip"
