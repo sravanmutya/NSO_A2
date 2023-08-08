@@ -137,8 +137,7 @@ do
     if (($no_of_servers > $devservers_count)); then
         devservers_to_add=$(($no_of_servers - $devservers_count))
         echo "$(date) Creating $devservers_to_add more nodes ..."
-        # v=$[ $RANDOM % 40 + 10 ]
-        # devserver_name=${sr_server}${v}
+        
         servernames=$(openstack server list --status ACTIVE -f value -c Name)
     
         # Checking for existence of nodes with similar names to avoid name clashes
@@ -169,8 +168,6 @@ do
                 fi
             done
             servernames=$(openstack server list --status ACTIVE -f value -c Name)
-            # v=$[ $RANDOM % 40 + 10 ]
-            # devserver_name=${sr_server}${v}
         
             check_name=0
     
