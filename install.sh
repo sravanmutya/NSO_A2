@@ -199,8 +199,6 @@ devservers_count=$(grep -ocP ${sr_server} <<< ${existing_servers})
 if((${no_of_servers} > ${devservers_count})); then
     
     devservers_to_add=$((${no_of_servers} - ${devservers_count}))
-    # v=$[ $RANDOM % 40 + 10 ]
-    # devserver_name=${sr_server}${v}
     servernames=$(openstack server list --status ACTIVE -f value -c Name)
     
 
@@ -235,8 +233,6 @@ done
         done
         
         servernames=$(openstack server list --status ACTIVE -f value -c Name)
-        # v=$[ $RANDOM % 40 + 10 ]
-        # devserver_name=${sr_server}${v}
         
         check_name=0
         
