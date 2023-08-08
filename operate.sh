@@ -137,20 +137,20 @@ do
     if (($no_of_servers > $devservers_count)); then
         devservers_to_add=$(($no_of_servers - $devservers_count))
         echo "$(date) Creating $devservers_to_add more nodes ..."
-        v=$[ $RANDOM % 40 + 10 ]
-        devserver_name=${sr_server}${v}
+        # v=$[ $RANDOM % 40 + 10 ]
+        # devserver_name=${sr_server}${v}
         servernames=$(openstack server list --status ACTIVE -f value -c Name)
     
         # Checking for existence of nodes with similar names to avoid name clashes
         check_name=0
-        until [[ check_name -eq 1 ]]
-        do  
-            if echo "${servernames}" | grep -qFx ${devserver_name} 
-            then
-            v=$[ $RANDOM % 40 + 10 ]
-            devserver_name=${sr_server}${v}
-            else
-            check_name=1     
+
+        # Loop until a unique server name is found
+        while [ $check_name -eq 0 ]; do
+            v=$(( RANDOM % 40 + 10 ))
+            devserver_name="${sr_server}${v}"
+    
+            if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
+                check_name=1
             fi
         done
 
@@ -158,7 +158,7 @@ do
         while [ $devservers_to_add -gt 0 ]
         do   
             server_create=$(openstack server create --image "Ubuntu 20.04 Focal Fossa x86_64"  $devserver_name --key-name "$sr_keypair" --flavor "1C-2GB-50GB" --network "$natverk_namn" --security-group "$sr_security_group")
-            echo "$(date) Created $devserver_name node"
+            echo "$(date) Created server with a unique server name: $devserver_name "
             ((devservers_to_add--))
             sequence=$(( $sequence+1 ))
             active=false
@@ -169,19 +169,18 @@ do
                 fi
             done
             servernames=$(openstack server list --status ACTIVE -f value -c Name)
-            v=$[ $RANDOM % 40 + 10 ]
-            devserver_name=${sr_server}${v}
+            # v=$[ $RANDOM % 40 + 10 ]
+            # devserver_name=${sr_server}${v}
         
             check_name=0
-        
-            until [[ check_name -eq 1 ]]
-            do  
-                if echo "${servernames}" | grep -qFx ${devserver_name} 
-                then
-                v=$[ $RANDOM % 40 + 10 ]
-                devserver_name=${sr_server}${v} 
-                else
-                check_name=1     
+    
+            # Loop until a unique server name is found
+            while [ $check_name -eq 0 ]; do
+                v=$(( RANDOM % 40 + 10 ))
+                devserver_name="${sr_server}${v}"
+    
+                if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
+                    check_name=1
                 fi
             done
 
