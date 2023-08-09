@@ -147,22 +147,22 @@ else
    if [[ -n "${unassigned_ips}" ]]; then
         fip1=$(echo "${unassigned_ips}" | awk '{print $1}')
         if [[ -n "${fip1}" ]]; then
-            echo "$(date) 1 floating IP available for the Bastion."
+            echo "$(date) 1 floating IP available for the Bastion node."
         else
-            echo "$(date) Creating floating IP for the Bastion "
+            echo "$(date) Creating floating IP for the Bastion node."
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
         fi
     else
-            echo "$(date) Creating floating IP for the Bastion "
+            echo "$(date) Creating floating IP for the Bastion node."
             created_fip1=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip1)
             fip1="$(cat floating_ip1)"
     fi
     echo "$(date) Did not detect ${sr_bastion_server}, launching it."
     bastion=$(openstack server create --image "Ubuntu 20.04 Focal Fossa x86_64" ${sr_bastion_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group}) 
     add_bastion_fip=$(openstack server add floating ip ${sr_bastion_server} ${fip1}) 
-    echo "$(date) Floating IP assigned for bastion."
-    echo "$(date) Added ${sr_bastion_server} server."
+    echo "$(date) Floating IP assigned for the Bastion node."
+    echo "$(date) Added ${sr_bastion_server} node."
 fi
 
 
@@ -172,22 +172,22 @@ else
     if [[ -n "$unassigned_ips" ]]; then
         fip2=$(echo "$unassigned_ips" | awk '{print $2}')
         if [[ -n "$fip2" ]]; then
-            echo "$(date) 1 floating IP available for the Proxy server."
+            echo "$(date) 1 floating IP available for the Proxy node."
         else
-            echo "$(date) Creating floating IP for the Proxy "
+            echo "$(date) Creating floating IP for the Proxy node."
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
             fip2="$(cat floating_ip2)"
         fi
     else
-            echo "$(date) Creating floating IP for Proxy "
+            echo "$(date) Creating floating IP for the Proxy node."
             created_fip2=$(openstack floating ip create ext-net -f json | jq -r '.floating_ip_address' > floating_ip2)
             fip2="$(cat floating_ip2)"
     fi
     echo "$(date) Did not detect ${sr_haproxy_server}, launching it."
     haproxy=$(openstack server create --image "Ubuntu 20.04 Focal Fossa x86_64" ${sr_haproxy_server} --key-name ${sr_keypair} --flavor "1C-2GB-50GB" --network ${natverk_namn} --security-group ${sr_security_group})
     add_haproxy_fip=$(openstack server add floating ip ${sr_haproxy_server} ${fip2})
-    echo "$(date) Floating IP assigned for Proxy."
-    echo "$(date) Added ${sr_haproxy_server} server."
+    echo "$(date) Floating IP assigned for the Proxy node."
+    echo "$(date) Added ${sr_haproxy_server} node."
     
 fi
 
