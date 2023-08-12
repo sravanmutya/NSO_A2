@@ -206,8 +206,9 @@ if((${no_of_servers} > ${devservers_count})); then
 check_name=0
 
 # Loop until a unique server name is found
+# Maximum threshold is 10
 while [ $check_name -eq 0 ]; do
-    v=$(( RANDOM % 40 + 10 ))
+    v=$(( RANDOM % 10 + 1 )) # Generating a random number in the range 1-10
     devserver_name="${sr_server}${v}"
     
     if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
@@ -238,7 +239,7 @@ done
         
         # Loop until a unique server name is found
         while [ $check_name -eq 0 ]; do
-            v=$(( RANDOM % 40 + 10 ))
+            v=$(( RANDOM % 10 + 1 ))
             devserver_name="${sr_server}${v}"
     
             if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
