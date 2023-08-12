@@ -145,7 +145,7 @@ do
 
         # Loop until a unique server name is found
         while [ $check_name -eq 0 ]; do
-            v=$(( RANDOM % 40 + 10 ))
+            v=$(( RANDOM % 10 + 1 ))
             devserver_name="${sr_server}${v}"
     
             if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
@@ -173,7 +173,7 @@ do
     
             # Loop until a unique server name is found
             while [ $check_name -eq 0 ]; do
-                v=$(( RANDOM % 40 + 10 ))
+                v=$(( RANDOM % 10 + 1 ))
                 devserver_name="${sr_server}${v}"
     
                 if ! echo "${servernames}" | grep -qFx "${devserver_name}"; then
